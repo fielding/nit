@@ -68,7 +68,9 @@ nit diff -H         # 3-line context, full headers
 nit log -n 5        # limit to 5 commits
 ```
 
-any command nit doesn't implement is passed through to git:
+### passthrough
+
+nit only optimizes a handful of commands today — the ones that burn the most tokens in real agent sessions. everything else is passed through to git automatically:
 
 ```sh
 nit commit -m "..."   # → git commit -m "..."
@@ -76,7 +78,9 @@ nit push              # → git push
 nit checkout -b foo   # → git checkout -b foo
 ```
 
-this means you can `alias git=nit` and everything works — optimized commands go native, everything else falls through with zero overhead.
+passthrough uses `execvpe` — it replaces the nit process with git directly. no subprocess, no wrapper overhead. it's as if you typed `git` yourself.
+
+this means you can `alias git=nit` and everything just works. as commands get optimized with native libgit2 implementations (prioritized by real-world usage frequency), the passthrough shrinks and nit gets faster — no config changes needed.
 
 ## compact vs human
 
