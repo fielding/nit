@@ -31,10 +31,13 @@ Measured with [hyperfine](https://github.com/sharkdp/hyperfine), 100 runs, Relea
 | `log -20` | ~2,273 tokens | ~301 tokens | **87%** |
 | `diff` | ~1,016 tokens | ~657 tokens | **35%** |
 | `show` | ~20,583 tokens | ~19,737 tokens | **4%** |
+| `show --stat` | ~260 tokens | ~118 tokens | **55%** |
 
 *Token counts approximated at ~4 chars/token. Savings scale with repo size and dirty file count.*
 
 The speed gains come from libgit2 (no subprocess, native object db reads). The token savings come from compact defaults - the same flags exist in git, but agents don't use them because they'd need to be told to. nit just does it out of the box.
+
+Note on `show --stat`: analysis of real sessions shows agents already use `git show --stat` 36% of the time. nit's compact stat drops the histogram bars and column padding, cutting output by 55%.
 
 Based on analysis of 3,156 real sessions across Claude Code, Codex, and Pi: git accounts for **~459K tokens** of output, representing **7.4% of all shell commands**. Codex is the heaviest user at 10.7% of all bash calls being git. nit's compact defaults would cut **150-250K tokens** across those sessions.
 

@@ -125,10 +125,9 @@ pub fn run() !void {
     try w.flush();
 }
 
-fn openRepo(w: *std.Io.Writer) !git.Repository {
+fn openRepo(_: *std.Io.Writer) !git.Repository {
     return git.Repository.openFromCwd() catch {
-        try w.writeAll("fatal: not a git repository\n");
-        try w.flush();
+        std.debug.print("fatal: not a git repository\n", .{});
         std.process.exit(128);
     };
 }

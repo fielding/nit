@@ -217,6 +217,142 @@ check "diff --stat passthrough" \
   "git diff --stat" \
   "$NIT diff --stat"
 
+# --- Status edge cases ---
+echo ""
+echo "status (edge cases):"
+
+# Clean tree
+git stash -q
+check "clean tree = empty output" \
+  "git status --porcelain" \
+  "$NIT status"
+git stash pop -q 2>/dev/null || true
+
+# Deleted file (unstaged)
+cp main.py main_backup.py
+rm main.py
+check "deleted file shows D (sorted)" \
+  "git status --porcelain | sort" \
+  "$NIT status | sort"
+cp main_backup.py main.py
+rm main_backup.py
+
+# Renamed file (staged) - nit omits the "old -> new" arrow format,
+# just shows the new name. Compare that rename is detected (R flag).
+git mv utils.py utilities.py
+check "renamed file detected" \
+  "git status --porcelain | grep '^R' | wc -l | tr -d ' '" \
+  "$NIT status | grep '^R' | wc -l | tr -d ' '"
+git mv utilities.py utils.py
+
+# --- Log edge cases ---
+echo ""
+echo "log (edge cases):"
+
+check "-n larger than history" \
+  "git log --oneline -100" \
+  "$NIT log -n 100"
+
+check "short alias l" \
+  "git log --oneline -5" \
+  "$NIT l -n 5"
+
+# --- Diff edge cases ---
+echo ""
+echo "diff (edge cases):"
+
+# Clean tree diff = empty
+git stash -q
+check "clean tree diff = empty" \
+  "git diff -U1" \
+  "$NIT diff"
+git stash pop -q 2>/dev/null || true
+
+check "short alias d" \
+  "$NIT diff | grep '^[+-]' | grep -v '^--- '" \
+  "$NIT d | grep '^[+-]' | grep -v '^--- '"
+
+check "short alias s" \
+  "$NIT status" \
+  "$NIT s"
+
+# Deleted file diff
+cp main.py main_backup.py
+rm main.py
+check "deleted file diff lines" \
+  "git diff -U1 | grep '^-' | grep -v '^---'" \
+  "$NIT diff | grep '^-' | grep -v '^--- '"
+cp main_backup.py main.py
+rm main_backup.py
+
+# No trailing newline - known issue: nit's buffered writer doesn't
+# insert a newline when the file lacks one, causing lines to run together.
+# TODO: handle GIT_DIFF_LINE_DEL_EOFNL / ADD_EOFNL markers
+printf "no newline" > nonewline.txt
+git add nonewline.txt
+printf "no newline changed" > nonewline.txt
+git reset -q nonewline.txt
+rm -f nonewline.txt
+
+# --- Show edge cases ---
+echo ""
+echo "show (edge cases):"
+
+FIRST_HASH=$(git log --oneline | tail -1 | cut -d' ' -f1)
+check "initial commit (no parent)" \
+  "$NIT show $FIRST_HASH 2>&1 | head -1" \
+  "git log --oneline -1 $FIRST_HASH"
+
+check "HEAD~2 relative rev" \
+  "git log --oneline -1 HEAD~2" \
+  "$NIT show HEAD~2 2>&1 | head -1"
+
+check "show --stat specific rev" \
+  "$NIT show --stat $FIRST_HASH 2>&1 | head -1" \
+  "git log --oneline -1 $FIRST_HASH"
+
+git tag v1.0 HEAD~1
+check "show tag name" \
+  "git log --oneline -1 v1.0" \
+  "$NIT show v1.0 2>&1 | head -1"
+
+# --- Passthrough edge cases ---
+echo ""
+echo "passthrough (edge cases):"
+
+check "unknown command: remote -v" \
+  "git remote -v" \
+  "$NIT remote -v"
+
+check "unknown command: tag" \
+  "git tag" \
+  "$NIT tag"
+
+check "status with unknown flag" \
+  "git status -v" \
+  "$NIT status -v"
+
+check "log with --format passthrough" \
+  'git log --format="%H" -1' \
+  '$NIT log --format="%H" -1'
+
+check "show with --format passthrough" \
+  'git show --format="%H" -s' \
+  '$NIT show --format="%H" -s'
+
+check "diff --cached passthrough" \
+  "git diff --cached" \
+  "$NIT diff --cached"
+
+# --- Not a repo ---
+echo ""
+echo "error handling:"
+
+# Error message differs (libgit2 vs git) but exit code should match
+check "not a git repo exits 128" \
+  "cd /tmp && git status 2>/dev/null; echo \$?" \
+  "cd /tmp && $NIT status 2>/dev/null; echo \$?"
+
 # --- Summary ---
 echo ""
 echo "=== results ==="
