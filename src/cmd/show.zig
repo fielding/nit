@@ -5,7 +5,7 @@ const color = @import("../color.zig");
 
 const Writer = std.Io.Writer;
 
-pub fn run(repo: *c.git_repository, human: bool, rev: ?[]const u8, w: *Writer) !void {
+pub fn run(repo: *c.git_repository, human: bool, stat: bool, rev: ?[]const u8, w: *Writer) !void {
     var oid: c.git_oid = undefined;
 
     if (rev) |r| {
@@ -82,12 +82,72 @@ pub fn run(repo: *c.git_repository, human: bool, rev: ?[]const u8, w: *Writer) !
     try git.check(c.git_diff_tree_to_tree(&diff_result, repo, parent_tree, commit_tree, &opts));
     defer c.git_diff_free(diff_result);
 
-    if (human) {
+    if (stat) {
+        try writeStat(diff_result, use_color, w);
+    } else if (human) {
         var ctx = HumanCtx{ .writer = w, .use_color = use_color, .current_file = null };
         _ = c.git_diff_print(diff_result, c.GIT_DIFF_FORMAT_PATCH, humanCallback, @ptrCast(&ctx));
     } else {
         var ctx = CompactCtx{ .writer = w };
         _ = c.git_diff_print(diff_result, c.GIT_DIFF_FORMAT_PATCH, compactCallback, @ptrCast(&ctx));
+    }
+}
+
+// --- Stat ---
+
+fn writeStat(diff_result: ?*c.git_diff, use_color: bool, w: *Writer) !void {
+    var stats: ?*c.git_diff_stats = null;
+    try git.check(c.git_diff_get_stats(&stats, diff_result));
+    defer c.git_diff_stats_free(stats);
+
+    const total_files = c.git_diff_stats_files_changed(stats);
+    const total_add = c.git_diff_stats_insertions(stats);
+    const total_del = c.git_diff_stats_deletions(stats);
+
+    // Summary line
+    if (use_color) {
+        try w.print("{s}{d} file{s}{s}, ", .{ color.bold, total_files, if (total_files != 1) "s" else "", color.reset });
+        try w.print("{s}+{d}{s} ", .{ color.bright_green, total_add, color.reset });
+        try w.print("{s}-{d}{s}\n", .{ color.bright_red, total_del, color.reset });
+    } else {
+        try w.print("{d} file{s}, +{d} -{d}\n", .{ total_files, if (total_files != 1) "s" else "", total_add, total_del });
+    }
+
+    // Per-file lines via git_patch
+    const num_deltas = c.git_diff_num_deltas(diff_result);
+    for (0..num_deltas) |i| {
+        var patch: ?*c.git_patch = null;
+        try git.check(c.git_patch_from_diff(&patch, diff_result, i));
+        defer c.git_patch_free(patch);
+
+        const delta = c.git_patch_get_delta(patch);
+        if (delta == null) continue;
+
+        const path = if (delta.*.new_file.path != null)
+            std.mem.span(delta.*.new_file.path)
+        else if (delta.*.old_file.path != null)
+            std.mem.span(delta.*.old_file.path)
+        else
+            continue;
+
+        var ctx_lines: usize = 0;
+        var file_add: usize = 0;
+        var file_del: usize = 0;
+        try git.check(c.git_patch_line_stats(&ctx_lines, &file_add, &file_del, patch));
+
+        if (use_color) {
+            try w.print("  {s} ", .{path});
+            if (file_add > 0) try w.print("{s}+{d}{s}", .{ color.bright_green, file_add, color.reset });
+            if (file_add > 0 and file_del > 0) try w.writeByte(' ');
+            if (file_del > 0) try w.print("{s}-{d}{s}", .{ color.bright_red, file_del, color.reset });
+            try w.writeByte('\n');
+        } else {
+            try w.print("  {s} ", .{path});
+            if (file_add > 0) try w.print("+{d}", .{file_add});
+            if (file_add > 0 and file_del > 0) try w.writeByte(' ');
+            if (file_del > 0) try w.print("-{d}", .{file_del});
+            try w.writeByte('\n');
+        }
     }
 }
 

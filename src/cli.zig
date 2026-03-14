@@ -40,12 +40,21 @@ pub fn run() !void {
     var human = false;
     var count: usize = 20;
     var staged = false;
+    var stat = false;
+    var has_unknown_flags = false;
 
     for (args[2..]) |arg| {
         if (std.mem.eql(u8, arg, "-H") or std.mem.eql(u8, arg, "--human")) {
             human = true;
         } else if (std.mem.eql(u8, arg, "-s") or std.mem.eql(u8, arg, "--staged")) {
             staged = true;
+        } else if (std.mem.eql(u8, arg, "--stat")) {
+            stat = true;
+        } else if (std.mem.eql(u8, arg, "-n")) {
+            // Handled below with value parsing
+        } else if (arg.len > 0 and arg[0] == '-') {
+            // Flag we don't recognize - passthrough to git
+            has_unknown_flags = true;
         }
     }
 
@@ -55,6 +64,12 @@ pub fn run() !void {
             count = std.fmt.parseInt(usize, args[i + 1], 10) catch 20;
             i += 1;
         }
+    }
+
+    // If we see flags we don't handle, let git deal with it
+    if (has_unknown_flags) {
+        try w.flush();
+        return passthrough(args);
     }
 
     const cmd = args[1];
@@ -104,7 +119,7 @@ pub fn run() !void {
                 break;
             }
         }
-        try show.run(repo.repo, human, rev, w);
+        try show.run(repo.repo, human, stat, rev, w);
     }
 
     try w.flush();
