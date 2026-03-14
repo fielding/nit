@@ -111,9 +111,18 @@ pub fn run() !void {
     } else if (std.mem.eql(u8, cmd, "diff") or std.mem.eql(u8, cmd, "d")) {
         try diff.run(repo.repo, human, staged, w);
     } else if (std.mem.eql(u8, cmd, "show")) {
-        // Find revision arg (first non-flag arg after "show")
+        // Find revision arg (first non-flag arg after "show", skipping -n's value)
         var rev: ?[]const u8 = null;
+        var skip_next = false;
         for (args[2..]) |arg| {
+            if (skip_next) {
+                skip_next = false;
+                continue;
+            }
+            if (std.mem.eql(u8, arg, "-n")) {
+                skip_next = true;
+                continue;
+            }
             if (arg.len > 0 and arg[0] != '-') {
                 rev = arg;
                 break;

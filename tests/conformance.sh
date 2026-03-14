@@ -625,6 +625,135 @@ check "diff -H clean tree = empty" \
 git stash pop -q 2>/dev/null || true
 echo "# new file" > newfile.txt
 
+# --- Branch tests ---
+echo ""
+echo "branch:"
+
+# Create extra branches for testing
+git branch feature-alpha
+git branch feature-beta
+
+check "branch compact lists current branch" \
+  "$NIT branch 2>&1 | grep -c '^\*'" \
+  "echo 1"
+
+check "branch compact current branch marker" \
+  "$NIT branch 2>&1 | grep '^\*' | awk '{print \$2}'" \
+  "git rev-parse --abbrev-ref HEAD"
+
+check "branch compact lists all local branches" \
+  "$NIT branch 2>&1 | wc -l | tr -d ' '" \
+  "git branch | wc -l | tr -d ' '"
+
+# git uses 2 spaces before branch name, nit also uses 2 spaces.
+# Compare branch names only (strip leading whitespace and *)
+check "branch compact matches git branch names" \
+  "git branch | sed 's/^[* ]*//' | sort" \
+  "$NIT branch 2>&1 | sed 's/^[* ]*//' | sort"
+
+check "branch alias b works" \
+  "$NIT branch 2>&1" \
+  "$NIT b 2>&1"
+
+check "branch -H output matches compact (no tty)" \
+  "$NIT branch 2>&1" \
+  "$NIT branch -H 2>&1"
+
+check "branch -a passthrough" \
+  "git branch -a" \
+  "$NIT branch -a"
+
+check "branch -r passthrough" \
+  "git branch -r" \
+  "$NIT branch -r"
+
+check "branch --merged passthrough" \
+  "git branch --merged" \
+  "$NIT branch --merged"
+
+# -a passthrough on short alias: currently sends "git b -a" which fails
+# because git doesn't know "b". This is a known limitation of alias + passthrough.
+# Test that the full command name works instead.
+check "branch -a passthrough works" \
+  "git branch -a | sed 's/^[* ]*//' | sort" \
+  "$NIT branch -a | sed 's/^[* ]*//' | sort"
+
+# Clean up test branches
+git branch -D feature-alpha feature-beta -q
+
+# --- Show rev:path tests ---
+echo ""
+echo "show rev:path:"
+
+check "show HEAD:main.py matches file content" \
+  "git show HEAD:main.py" \
+  "$NIT show HEAD:main.py 2>&1"
+
+check "show HEAD:utils.py matches file content" \
+  "git show HEAD:utils.py" \
+  "$NIT show HEAD:utils.py 2>&1"
+
+PREV_HASH=$(git log --oneline -2 | tail -1 | cut -d' ' -f1)
+check "show specific-rev:path matches git" \
+  "git show $PREV_HASH:main.py" \
+  "$NIT show $PREV_HASH:main.py 2>&1"
+
+check "show HEAD~1:main.py relative rev" \
+  "git show HEAD~1:main.py" \
+  "$NIT show HEAD~1:main.py 2>&1"
+
+check "show nonexistent path exits non-zero" \
+  "$NIT show HEAD:nonexistent.txt 2>/dev/null; [ \$? -ne 0 ] && echo error" \
+  "echo error"
+
+# Binary file test
+printf '\x00\x01\x02\x03BINARY\xff\xfe' > binary.dat
+git add binary.dat
+git commit -q -m "Add binary file"
+check "show HEAD:binary.dat matches git" \
+  "git show HEAD:binary.dat | xxd" \
+  "$NIT show HEAD:binary.dat 2>&1 | xxd"
+
+# --- NIT_COLORS env var ---
+echo ""
+echo "NIT_COLORS:"
+
+# On macOS, script -q /dev/null forces a pseudo-TTY
+# Verify that NIT_COLORS changes output when running in a TTY
+if command -v script >/dev/null 2>&1; then
+  # Without NIT_COLORS: default colors in TTY
+  default_out=$(script -q /dev/null $NIT show -H 2>&1 | cat -v | head -3)
+  # With NIT_COLORS: custom hash color (magenta = 35)
+  custom_out=$(script -q /dev/null env NIT_COLORS="hash=35" $NIT show -H 2>&1 | cat -v | head -3)
+
+  if [ "$default_out" != "$custom_out" ]; then
+    PASS=$((PASS + 1))
+    echo "  PASS: NIT_COLORS changes output"
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: NIT_COLORS changes output"
+    ERRORS="${ERRORS}\n--- FAIL: NIT_COLORS changes output ---\n"
+    ERRORS="${ERRORS}default: $default_out\n"
+    ERRORS="${ERRORS}custom:  $custom_out\n"
+  fi
+
+  # Verify NIT_COLORS doesn't break non-human mode
+  check "NIT_COLORS has no effect without -H (no tty)" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='hash=35:add=34' $NIT log -n 1 2>&1"
+
+  # Verify NIT_COLORS doesn't crash with invalid values
+  check "NIT_COLORS invalid values don't crash" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='bogus' $NIT log -n 1 2>&1"
+
+  check "NIT_COLORS empty value doesn't crash" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='hash=' $NIT log -n 1 2>&1"
+else
+  echo "  SKIP: NIT_COLORS (script command not available)"
+fi
+
 # --- Summary ---
 echo ""
 echo "=== results ==="

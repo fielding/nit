@@ -27,7 +27,7 @@ pub fn run(repo: *c.git_repository, human: bool, w: *Writer) !void {
 
     while (true) {
         const err = c.git_branch_next(&ref, &branch_type, iter);
-        if (err < 0) break;
+        if (err != 0) break;
         defer c.git_reference_free(ref);
 
         var name_ptr: [*c]const u8 = null;
