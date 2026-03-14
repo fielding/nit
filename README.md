@@ -6,7 +6,7 @@ nit is a native git replacement built with Zig + libgit2, optimized for AI agent
 
 ## why
 
-AI agents (Claude Code, Codex, Cursor, etc.) call git *constantly*. every call burns tokens on verbose output that machines don't need — decorative headers, instructional text, column padding. across a single session, this adds up to thousands of wasted tokens.
+AI agents (Claude Code, Codex, Cursor, etc.) call git *constantly*. every call burns tokens on verbose output that machines don't need -decorative headers, instructional text, column padding. across a single session, this adds up to thousands of wasted tokens.
 
 nit fixes this by defaulting to compact, machine-readable output while being **1.5-1.7x faster** than git thanks to native libgit2.
 
@@ -70,7 +70,7 @@ nit log -n 5        # limit to 5 commits
 
 ### passthrough
 
-nit only optimizes a handful of commands today — the ones that burn the most tokens in real agent sessions. everything else is passed through to git automatically:
+nit only optimizes a handful of commands today -the ones that burn the most tokens in real agent sessions. everything else is passed through to git automatically:
 
 ```sh
 nit commit -m "..."   # → git commit -m "..."
@@ -78,9 +78,9 @@ nit push              # → git push
 nit checkout -b foo   # → git checkout -b foo
 ```
 
-passthrough uses `execvpe` — it replaces the nit process with git directly. no subprocess, no wrapper overhead. it's as if you typed `git` yourself.
+passthrough uses `execvpe` -it replaces the nit process with git directly. no subprocess, no wrapper overhead. it's as if you typed `git` yourself.
 
-this means you can `alias git=nit` and everything just works. as commands get optimized with native libgit2 implementations (prioritized by real-world usage frequency), the passthrough shrinks and nit gets faster — no config changes needed.
+this means you can `alias git=nit` and everything just works. as commands get optimized with native libgit2 implementations (prioritized by real-world usage frequency), the passthrough shrinks and nit gets faster -no config changes needed.
 
 ## compact vs human
 
@@ -113,9 +113,9 @@ e4f5g6h 2026-03-13 Add user authentication
 
 ## how it works
 
-nit uses [libgit2](https://libgit2.org/) directly via Zig's zero-cost C interop — no subprocess, no shell, no parsing git's text output. this is why it's faster: it reads the git object database natively instead of spawning a process and parsing stdout.
+nit uses [libgit2](https://libgit2.org/) directly via Zig's zero-cost C interop -no subprocess, no shell, no parsing git's text output. this is why it's faster: it reads the git object database natively instead of spawning a process and parsing stdout.
 
-for commands nit hasn't implemented yet, it calls `execvpe("git", ...)` which replaces the nit process with git — zero overhead, no wrapper tax.
+for commands nit hasn't implemented yet, it calls `execvpe("git", ...)` which replaces the nit process with git -zero overhead, no wrapper tax.
 
 ## project structure
 
