@@ -1,7 +1,7 @@
 const std = @import("std");
 const git = @import("../git.zig");
 const c = git.c;
-const clr = @import("../color.zig");
+const color = @import("../color.zig");
 
 const Writer = std.Io.Writer;
 
@@ -65,7 +65,7 @@ fn writeCompact(status_list: ?*c.git_status_list, count: usize, w: *Writer) !voi
 }
 
 fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void {
-    const use_color = clr.isTty();
+    const use_color = color.isTty();
     var has_staged = false;
     var has_unstaged = false;
     var has_untracked = false;
@@ -80,7 +80,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
     }
 
     if (has_staged) {
-        if (use_color) try w.print("{s}staged:{s}\n", .{ clr.bright_green, clr.reset }) else try w.writeAll("staged:\n");
+        if (use_color) try w.print("{s}staged:{s}\n", .{ color.bright_green, color.reset }) else try w.writeAll("staged:\n");
         for (0..count) |i| {
             const entry = c.git_status_byindex(status_list, i);
             if (entry == null) continue;
@@ -89,7 +89,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
             if (label) |l| {
                 const path = if (entry.*.head_to_index != null) entry.*.head_to_index.*.new_file.path else continue;
                 if (use_color) {
-                    try w.print("  {s}{s}:{s} {s}\n", .{ clr.green, l, clr.reset, std.mem.span(path) });
+                    try w.print("  {s}{s}:{s} {s}\n", .{ color.green, l, color.reset, std.mem.span(path) });
                 } else {
                     try w.print("  {s}: {s}\n", .{ l, std.mem.span(path) });
                 }
@@ -99,7 +99,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
 
     if (has_unstaged) {
         if (has_staged) try w.writeByte('\n');
-        if (use_color) try w.print("{s}unstaged:{s}\n", .{ clr.bright_yellow, clr.reset }) else try w.writeAll("unstaged:\n");
+        if (use_color) try w.print("{s}unstaged:{s}\n", .{ color.bright_yellow, color.reset }) else try w.writeAll("unstaged:\n");
         for (0..count) |i| {
             const entry = c.git_status_byindex(status_list, i);
             if (entry == null) continue;
@@ -109,7 +109,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
             if (label) |l| {
                 const path = if (entry.*.index_to_workdir != null) entry.*.index_to_workdir.*.new_file.path else continue;
                 if (use_color) {
-                    try w.print("  {s}{s}:{s} {s}\n", .{ clr.yellow, l, clr.reset, std.mem.span(path) });
+                    try w.print("  {s}{s}:{s} {s}\n", .{ color.yellow, l, color.reset, std.mem.span(path) });
                 } else {
                     try w.print("  {s}: {s}\n", .{ l, std.mem.span(path) });
                 }
@@ -119,14 +119,14 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
 
     if (has_untracked) {
         if (has_staged or has_unstaged) try w.writeByte('\n');
-        if (use_color) try w.print("{s}untracked:{s}\n", .{ clr.dim, clr.reset }) else try w.writeAll("untracked:\n");
+        if (use_color) try w.print("{s}untracked:{s}\n", .{ color.dim, color.reset }) else try w.writeAll("untracked:\n");
         for (0..count) |i| {
             const entry = c.git_status_byindex(status_list, i);
             if (entry == null) continue;
             if (entry.*.status != c.GIT_STATUS_WT_NEW) continue;
             const path = if (entry.*.index_to_workdir != null) entry.*.index_to_workdir.*.new_file.path else continue;
             if (use_color) {
-                try w.print("  {s}{s}{s}\n", .{ clr.dim, std.mem.span(path), clr.reset });
+                try w.print("  {s}{s}{s}\n", .{ color.dim, std.mem.span(path), color.reset });
             } else {
                 try w.print("  {s}\n", .{std.mem.span(path)});
             }
