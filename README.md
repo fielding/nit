@@ -14,23 +14,25 @@ nit fixes this by defaulting to compact, machine-readable output while being **1
 
 measured with [hyperfine](https://github.com/sharkdp/hyperfine), 100 runs, ReleaseFast build:
 
-### speed
+### speed (equivalent output, apples-to-apples)
 
-| command | git | nit | speedup |
+| command | git equivalent | git | nit | speedup |
+|---|---|---|---|---|
+| `status` | `git status --porcelain -b` | 14.3 ms | 8.9 ms | **1.61x faster** |
+| `diff` | `git diff -U1` | 14.1 ms | 9.6 ms | **1.47x faster** |
+| `log -20` | `git log -20 --oneline` | 8.6 ms | 8.7 ms | ~1x (parity) |
+
+### token savings (nit default vs git default)
+
+| command | `git` default | `nit` default | savings |
 |---|---|---|---|
-| `status` | 14.7 ms | 8.9 ms | **1.66x faster** |
-| `diff` | 14.0 ms | 9.6 ms | **1.46x faster** |
-| `log -20` | 8.6 ms | 8.7 ms | ~1x (parity) |
-
-### token savings
-
-| command | git (tokens) | nit (tokens) | savings |
-|---|---|---|---|
-| `status` | ~116 | ~30 | **74%** |
-| `log -20` | ~2,273 | ~301 | **87%** |
-| `diff` | ~942 | ~811 | **14%** |
+| `status` | ~116 tokens | ~30 tokens | **74%** |
+| `log -20` | ~2,273 tokens | ~301 tokens | **87%** |
+| `diff` | ~942 tokens | ~811 tokens | **14%** |
 
 *token counts approximated at ~4 chars/token. savings scale with repo size and dirty file count.*
+
+the speed gains come from libgit2 (no subprocess, native object db reads). the token savings come from compact defaults - the same flags exist in git, but agents don't use them because they'd need to be told to. nit just does it out of the box.
 
 based on analysis of 2,830 real Claude Code sessions: git accounts for **310K+ tokens** of output. nit's compact defaults would save **100-150K tokens** across those sessions.
 
