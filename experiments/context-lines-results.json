@@ -1,0 +1,515 @@
+[
+  {
+    "variant": "U0",
+    "trial": 0,
+    "response": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with the stronger SHA-256 algorithm for password hashing on line 24.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method, raising a ValueError for invalid addresses.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "total_tokens": 0,
+    "cost": 0,
+    "duration_ms": 3890,
+    "raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 3890,
+      "duration_api_ms": 3856,
+      "num_turns": 1,
+      "result": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with the stronger SHA-256 algorithm for password hashing on line 24.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method, raising a ValueError for invalid addresses.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+      "stop_reason": "end_turn",
+      "session_id": "19f80e08-6ee0-4c97-9f54-31731d402786",
+      "total_cost_usd": 0.066086,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 9554,
+        "cache_read_input_tokens": 6577,
+        "output_tokens": 123,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 9554,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 2,
+          "outputTokens": 123,
+          "cacheReadInputTokens": 6577,
+          "cacheCreationInputTokens": 9554,
+          "webSearchRequests": 0,
+          "costUSD": 0.066086,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "permission_denials": [],
+      "fast_mode_state": "off",
+      "uuid": "db09658a-1e1c-4a3d-9503-49681667a8d0"
+    },
+    "score": 4,
+    "max_score": 4
+  },
+  {
+    "variant": "U0",
+    "trial": 1,
+    "response": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing, though the underlying vulnerability of hashing the email instead of the password remains.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"        password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "total_tokens": 0,
+    "cost": 0,
+    "duration_ms": 6052,
+    "raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 6052,
+      "duration_api_ms": 6016,
+      "num_turns": 1,
+      "result": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing, though the underlying vulnerability of hashing the email instead of the password remains.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"        password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+      "stop_reason": "end_turn",
+      "session_id": "c4ae199c-deeb-4c7b-8a4f-57bd86c57a6c",
+      "total_cost_usd": 0.0112005,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 16131,
+        "output_tokens": 125,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 2,
+          "outputTokens": 125,
+          "cacheReadInputTokens": 16131,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.0112005,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "permission_denials": [],
+      "fast_mode_state": "off",
+      "uuid": "95162e2c-9b8a-4d1c-9a1c-d41fbbd0ae0e"
+    },
+    "score": 4,
+    "max_score": 4
+  },
+  {
+    "variant": "U0",
+    "trial": 2,
+    "response": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing on line 24.\",\n  \"validation_added\": \"Email validation checking for non-empty value and presence of '@' was added to the update_email method (or similar method around line 41).\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "total_tokens": 0,
+    "cost": 0,
+    "duration_ms": 4094,
+    "raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 4094,
+      "duration_api_ms": 4045,
+      "num_turns": 1,
+      "result": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing on line 24.\",\n  \"validation_added\": \"Email validation checking for non-empty value and presence of '@' was added to the update_email method (or similar method around line 41).\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+      "stop_reason": "end_turn",
+      "session_id": "d213d025-4d42-4be4-a6ca-c35e7ec60272",
+      "total_cost_usd": 0.0110755,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 16131,
+        "output_tokens": 120,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 2,
+          "outputTokens": 120,
+          "cacheReadInputTokens": 16131,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.0110755,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "permission_denials": [],
+      "fast_mode_state": "off",
+      "uuid": "a6c5eeef-3078-40f4-9a3a-fb07769a3ac7"
+    },
+    "score": 4,
+    "max_score": 4
+  },
+  {
+    "variant": "U1",
+    "trial": 0,
+    "response": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing, though the real vulnerability remains that the email is being hashed instead of the actual password.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "total_tokens": 0,
+    "cost": 0,
+    "duration_ms": 4920,
+    "raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 4920,
+      "duration_api_ms": 4890,
+      "num_turns": 1,
+      "result": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing, though the real vulnerability remains that the email is being hashed instead of the actual password.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+      "stop_reason": "end_turn",
+      "session_id": "2c061343-7275-42fd-b1be-419e19c9afc6",
+      "total_cost_usd": 0.021234749999999997,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 1733,
+        "cache_read_input_tokens": 14437,
+        "output_tokens": 127,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 1733,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 2,
+          "outputTokens": 127,
+          "cacheReadInputTokens": 14437,
+          "cacheCreationInputTokens": 1733,
+          "webSearchRequests": 0,
+          "costUSD": 0.021234749999999997,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "permission_denials": [],
+      "fast_mode_state": "off",
+      "uuid": "a6fe0ebb-91fa-41c8-b9b0-d41817afe7dc"
+    },
+    "score": 4,
+    "max_score": 4
+  },
+  {
+    "variant": "U1",
+    "trial": 1,
+    "response": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing, though the real vulnerability remains that the email is being hashed instead of the actual password.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 42,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "total_tokens": 0,
+    "cost": 0,
+    "duration_ms": 4622,
+    "raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 4622,
+      "duration_api_ms": 4572,
+      "num_turns": 1,
+      "result": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing, though the real vulnerability remains that the email is being hashed instead of the actual password.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 42,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+      "stop_reason": "end_turn",
+      "session_id": "81e50e09-4b62-408b-8959-d2402a37189e",
+      "total_cost_usd": 0.01127,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 16170,
+        "output_tokens": 127,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 2,
+          "outputTokens": 127,
+          "cacheReadInputTokens": 16170,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.01127,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "permission_denials": [],
+      "fast_mode_state": "off",
+      "uuid": "3845d768-2299-4c86-8ee4-05bb85fe5d0c"
+    },
+    "score": 4,
+    "max_score": 4
+  },
+  {
+    "variant": "U1",
+    "trial": 2,
+    "response": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing, though the real vulnerability remains that the email is being hashed instead of the actual password.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 42,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "total_tokens": 0,
+    "cost": 0,
+    "duration_ms": 4974,
+    "raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 4974,
+      "duration_api_ms": 4931,
+      "num_turns": 1,
+      "result": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing, though the real vulnerability remains that the email is being hashed instead of the actual password.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 42,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+      "stop_reason": "end_turn",
+      "session_id": "38856d51-f9e5-4476-8ba2-9d0f9b426684",
+      "total_cost_usd": 0.01127,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 16170,
+        "output_tokens": 127,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 2,
+          "outputTokens": 127,
+          "cacheReadInputTokens": 16170,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.01127,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "permission_denials": [],
+      "fast_mode_state": "off",
+      "uuid": "79242913-71a9-44bc-9d40-61b3dc99cfe6"
+    },
+    "score": 4,
+    "max_score": 4
+  },
+  {
+    "variant": "U3",
+    "trial": 0,
+    "response": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "total_tokens": 0,
+    "cost": 0,
+    "duration_ms": 3152,
+    "raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 3152,
+      "duration_api_ms": 3104,
+      "num_turns": 1,
+      "result": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and containing '@') was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+      "stop_reason": "end_turn",
+      "session_id": "14f298b1-aad4-49f6-ae97-4e73223aac11",
+      "total_cost_usd": 0.02133475,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 1821,
+        "cache_read_input_tokens": 14437,
+        "output_tokens": 109,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 1821,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 2,
+          "outputTokens": 109,
+          "cacheReadInputTokens": 14437,
+          "cacheCreationInputTokens": 1821,
+          "webSearchRequests": 0,
+          "costUSD": 0.02133475,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "permission_denials": [],
+      "fast_mode_state": "off",
+      "uuid": "a5c768f7-1277-4148-8b7f-3f1ea1ed4c56"
+    },
+    "score": 4,
+    "max_score": 4
+  },
+  {
+    "variant": "U3",
+    "trial": 1,
+    "response": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hash generation in the `create_user` method.\",\n  \"validation_added\": \"An email format validation check (ensuring the email is non-empty and contains \\\"@\\\") was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"        password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "total_tokens": 0,
+    "cost": 0,
+    "duration_ms": 3735,
+    "raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 3735,
+      "duration_api_ms": 3707,
+      "num_turns": 1,
+      "result": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hash generation in the `create_user` method.\",\n  \"validation_added\": \"An email format validation check (ensuring the email is non-empty and contains \\\"@\\\") was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"        password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+      "stop_reason": "end_turn",
+      "session_id": "fdf2cd4f-5ea8-4ee1-bd5d-102123d77e79",
+      "total_cost_usd": 0.011239,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 16258,
+        "output_tokens": 124,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 2,
+          "outputTokens": 124,
+          "cacheReadInputTokens": 16258,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.011239,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "permission_denials": [],
+      "fast_mode_state": "off",
+      "uuid": "ca3a52a6-f3c8-4473-bfa7-9cc0e9383234"
+    },
+    "score": 4,
+    "max_score": 4
+  },
+  {
+    "variant": "U3",
+    "trial": 2,
+    "response": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and presence of '@') was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "total_tokens": 0,
+    "cost": 0,
+    "duration_ms": 3281,
+    "raw": {
+      "type": "result",
+      "subtype": "success",
+      "is_error": false,
+      "duration_ms": 3281,
+      "duration_api_ms": 3250,
+      "num_turns": 1,
+      "result": "\n\n```json\n{\n  \"security_fix\": \"The weak MD5 hashing algorithm was replaced with SHA-256 for password hashing.\",\n  \"validation_added\": \"Email format validation (checking for non-empty and presence of '@') was added to the `update_email` method.\",\n  \"validation_line\": 41,\n  \"insert_before\": \"password_hash = hashlib.sha256(email.encode()).hexdigest()\"\n}\n```",
+      "stop_reason": "end_turn",
+      "session_id": "daee4119-35fc-4bc9-ae75-11d5598f8b0f",
+      "total_cost_usd": 0.010889000000000001,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 16258,
+        "output_tokens": 110,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "",
+        "iterations": [],
+        "speed": "standard"
+      },
+      "modelUsage": {
+        "claude-opus-4-6[1m]": {
+          "inputTokens": 2,
+          "outputTokens": 110,
+          "cacheReadInputTokens": 16258,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.010889000000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "permission_denials": [],
+      "fast_mode_state": "off",
+      "uuid": "ae16bdad-cb50-4e26-9a72-2452f9b213db"
+    },
+    "score": 4,
+    "max_score": 4
+  }
+]
