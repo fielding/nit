@@ -80,7 +80,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
     }
 
     if (has_staged) {
-        if (use_color) try w.print("{s}staged:{s}\n", .{ color.bright_green, color.reset }) else try w.writeAll("staged:\n");
+        if (use_color) try w.print("{s}{s}staged:{s}\n", .{ color.bold, color.hpp_green, color.reset }) else try w.writeAll("staged:\n");
         for (0..count) |i| {
             const entry = c.git_status_byindex(status_list, i);
             if (entry == null) continue;
@@ -89,7 +89,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
             if (label) |l| {
                 const path = if (entry.*.head_to_index != null) entry.*.head_to_index.*.new_file.path else continue;
                 if (use_color) {
-                    try w.print("  {s}{s}:{s} {s}\n", .{ color.green, l, color.reset, std.mem.span(path) });
+                    try w.print("  {s}{s}:{s} {s}\n", .{ color.hpp_quiet_green, l, color.reset, std.mem.span(path) });
                 } else {
                     try w.print("  {s}: {s}\n", .{ l, std.mem.span(path) });
                 }
@@ -99,7 +99,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
 
     if (has_unstaged) {
         if (has_staged) try w.writeByte('\n');
-        if (use_color) try w.print("{s}unstaged:{s}\n", .{ color.bright_yellow, color.reset }) else try w.writeAll("unstaged:\n");
+        if (use_color) try w.print("{s}{s}unstaged:{s}\n", .{ color.bold, color.hpp_pink, color.reset }) else try w.writeAll("unstaged:\n");
         for (0..count) |i| {
             const entry = c.git_status_byindex(status_list, i);
             if (entry == null) continue;
@@ -109,7 +109,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
             if (label) |l| {
                 const path = if (entry.*.index_to_workdir != null) entry.*.index_to_workdir.*.new_file.path else continue;
                 if (use_color) {
-                    try w.print("  {s}{s}:{s} {s}\n", .{ color.yellow, l, color.reset, std.mem.span(path) });
+                    try w.print("  {s}{s}:{s} {s}\n", .{ color.hpp_quiet_red, l, color.reset, std.mem.span(path) });
                 } else {
                     try w.print("  {s}: {s}\n", .{ l, std.mem.span(path) });
                 }
@@ -126,7 +126,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
             if (entry.*.status != c.GIT_STATUS_WT_NEW) continue;
             const path = if (entry.*.index_to_workdir != null) entry.*.index_to_workdir.*.new_file.path else continue;
             if (use_color) {
-                try w.print("  {s}{s}{s}\n", .{ color.dim, std.mem.span(path), color.reset });
+                try w.print("  {s}{s}{s}\n", .{ color.hpp_fg_dim, std.mem.span(path), color.reset });
             } else {
                 try w.print("  {s}\n", .{std.mem.span(path)});
             }

@@ -42,7 +42,7 @@ pub fn run(repo: *c.git_repository, human: bool, stat: bool, rev: ?[]const u8, w
         const d = fmt.epochToDate(c.git_commit_time(commit));
 
         if (use_color) {
-            try w.print("{s}commit {s}{s}\n", .{ color.yellow, full_hash, color.reset });
+            try w.print("{s}commit {s}{s}\n", .{ color.hpp_amber, full_hash, color.reset });
             try w.print("{s}Author:{s} {s} <{s}>\n", .{ color.bold, color.reset, name, email });
             try w.print("{s}Date:{s}   {d}-{d:0>2}-{d:0>2}\n", .{ color.bold, color.reset, d.year, d.month, d.day });
         } else {
