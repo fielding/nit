@@ -22,7 +22,11 @@ pub fn run(repo: *c.git_repository, human: bool, stat: bool, rev: ?[]const u8, w
         defer std.heap.page_allocator.free(rev_z);
         try git.check(c.git_revparse_single(&obj, repo, rev_z));
         defer c.git_object_free(obj);
-        oid = c.git_object_id(obj).*;
+        // Peel to commit (handles tags, etc.)
+        var peeled: ?*c.git_object = null;
+        try git.check(c.git_object_peel(&peeled, obj, c.GIT_OBJECT_COMMIT));
+        defer c.git_object_free(peeled);
+        oid = c.git_object_id(peeled).*;
     } else {
         var head: ?*c.git_object = null;
         try git.check(c.git_revparse_single(&head, repo, "HEAD"));

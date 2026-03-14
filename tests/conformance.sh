@@ -750,6 +750,124 @@ if command -v script >/dev/null 2>&1; then
   check "NIT_COLORS empty value doesn't crash" \
     "$NIT log -n 1 2>&1" \
     "NIT_COLORS='hash=' $NIT log -n 1 2>&1"
+
+  # Multiple keys at once
+  check "NIT_COLORS multiple keys don't crash" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='hash=33:add=32:del=31:hunk=36:context=2:staged=34:unstaged=91:date=35' $NIT log -n 1 2>&1"
+
+  # True-color (24-bit) SGR value
+  check "NIT_COLORS true-color value doesn't crash" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='hash=38;2;255;165;0' $NIT log -n 1 2>&1"
+
+  # Verify true-color actually produces escape sequence in TTY
+  truecolor_out=$(script -q /dev/null env NIT_COLORS="hash=38;2;255;0;0" $NIT show -H 2>&1 | cat -v | head -1)
+  if echo "$truecolor_out" | grep -q '38;2;255;0;0'; then
+    PASS=$((PASS + 1))
+    echo "  PASS: NIT_COLORS true-color escape in TTY output"
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: NIT_COLORS true-color escape in TTY output"
+    ERRORS="${ERRORS}\n--- FAIL: NIT_COLORS true-color escape in TTY output ---\n"
+    ERRORS="${ERRORS}output: $truecolor_out\n"
+  fi
+
+  # Very long NIT_COLORS string (SGR value exceeds 32-byte buffer)
+  check "NIT_COLORS oversized SGR falls back gracefully" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='hash=38;2;255;255;255;1;2;3;4;5;6;7;8;9;10;11;12' $NIT log -n 1 2>&1"
+
+  # Unrecognized key (should be silently ignored)
+  check "NIT_COLORS unrecognized key ignored" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='boguskey=32' $NIT log -n 1 2>&1"
+
+  # Duplicate keys (last wins) - verify output changes with second value
+  dup_out1=$(script -q /dev/null env NIT_COLORS="hash=35" $NIT show -H 2>&1 | cat -v | head -1)
+  dup_out2=$(script -q /dev/null env NIT_COLORS="hash=33:hash=35" $NIT show -H 2>&1 | cat -v | head -1)
+  if [ "$dup_out1" = "$dup_out2" ]; then
+    PASS=$((PASS + 1))
+    echo "  PASS: NIT_COLORS duplicate keys (last wins)"
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: NIT_COLORS duplicate keys (last wins)"
+    ERRORS="${ERRORS}\n--- FAIL: NIT_COLORS duplicate keys (last wins) ---\n"
+    ERRORS="${ERRORS}single: $dup_out1\n"
+    ERRORS="${ERRORS}dup:    $dup_out2\n"
+  fi
+
+  # No = sign in a pair (should skip that pair, not crash)
+  check "NIT_COLORS no equals sign doesn't crash" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='noequalssign' $NIT log -n 1 2>&1"
+
+  # Trailing colon
+  check "NIT_COLORS trailing colon doesn't crash" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='hash=33:' $NIT log -n 1 2>&1"
+
+  # Leading colon
+  check "NIT_COLORS leading colon doesn't crash" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS=':hash=33' $NIT log -n 1 2>&1"
+
+  # Multiple colons in a row
+  check "NIT_COLORS consecutive colons don't crash" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='hash=33:::add=32' $NIT log -n 1 2>&1"
+
+  # Buffer exhaustion: more than 10 custom keys (only 10 bufs available)
+  check "NIT_COLORS >10 overrides doesn't crash" \
+    "$NIT log -n 1 2>&1" \
+    "NIT_COLORS='add=31:del=32:hunk=33:context=34:staged=35:unstaged=36:hash=37:date=38:add=39:del=40:hunk=41:context=42' $NIT log -n 1 2>&1"
+
+  # NIT_COLORS affects show -H (color slot: hash, date used in show)
+  custom_show=$(script -q /dev/null env NIT_COLORS="hash=35" $NIT show -H 2>&1 | cat -v | head -1)
+  if [ "$default_out" != "$custom_show" ] || echo "$custom_show" | grep -q '35m'; then
+    PASS=$((PASS + 1))
+    echo "  PASS: NIT_COLORS affects show -H"
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: NIT_COLORS affects show -H"
+    ERRORS="${ERRORS}\n--- FAIL: NIT_COLORS affects show -H ---\n"
+  fi
+
+  # NIT_COLORS affects diff -H (color slot: add, del, hunk, context)
+  default_diff=$(script -q /dev/null $NIT diff -H 2>&1 | cat -v | head -3)
+  custom_diff=$(script -q /dev/null env NIT_COLORS="add=35:del=36" $NIT diff -H 2>&1 | cat -v | head -3)
+  if [ "$default_diff" != "$custom_diff" ]; then
+    PASS=$((PASS + 1))
+    echo "  PASS: NIT_COLORS affects diff -H"
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: NIT_COLORS affects diff -H"
+    ERRORS="${ERRORS}\n--- FAIL: NIT_COLORS affects diff -H ---\n"
+  fi
+
+  # NIT_COLORS affects log -H (color slot: hash, date)
+  default_log=$(script -q /dev/null $NIT log -H -n 1 2>&1 | cat -v | head -1)
+  custom_log=$(script -q /dev/null env NIT_COLORS="hash=35:date=36" $NIT log -H -n 1 2>&1 | cat -v | head -1)
+  if [ "$default_log" != "$custom_log" ]; then
+    PASS=$((PASS + 1))
+    echo "  PASS: NIT_COLORS affects log -H"
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: NIT_COLORS affects log -H"
+    ERRORS="${ERRORS}\n--- FAIL: NIT_COLORS affects log -H ---\n"
+  fi
+
+  # NIT_COLORS affects status -H (color slot: staged, unstaged)
+  default_status=$(script -q /dev/null $NIT status -H 2>&1 | cat -v)
+  custom_status=$(script -q /dev/null env NIT_COLORS="staged=35:unstaged=36" $NIT status -H 2>&1 | cat -v)
+  if [ "$default_status" != "$custom_status" ]; then
+    PASS=$((PASS + 1))
+    echo "  PASS: NIT_COLORS affects status -H"
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: NIT_COLORS affects status -H"
+    ERRORS="${ERRORS}\n--- FAIL: NIT_COLORS affects status -H ---\n"
+  fi
 else
   echo "  SKIP: NIT_COLORS (script command not available)"
 fi
