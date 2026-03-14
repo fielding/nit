@@ -75,6 +75,7 @@ nit log -H          # includes dates, colored hashes
 nit diff -H         # 3-line context, stat summary, colored output
 
 nit log -n 5        # limit to 5 commits
+nit show --stat     # compact file change summary
 ```
 
 ### Passthrough
@@ -87,9 +88,19 @@ nit push              # -> git push
 nit checkout -b foo   # -> git checkout -b foo
 ```
 
+Passthrough also kicks in for **unrecognized flags** on native commands. If you pass a flag nit doesn't handle, it delegates to git rather than silently ignoring it:
+
+```sh
+nit diff --name-only  # nit doesn't implement --name-only, passes to git
+nit log --graph       # nit doesn't implement --graph, passes to git
+nit show --format=... # nit doesn't implement --format, passes to git
+```
+
+This makes `alias git=nit` safe. You never lose functionality - you just get optimized output for the flags nit knows about, and standard git behavior for everything else.
+
 Passthrough uses `execvpe` - it replaces the nit process with git directly. No subprocess, no wrapper overhead. It's as if you typed `git` yourself.
 
-This means you can `alias git=nit` and everything just works. As commands get optimized with native libgit2 implementations (prioritized by real-world usage frequency), the passthrough shrinks and nit gets faster - no config changes needed.
+As commands and flags get optimized with native libgit2 implementations (prioritized by real-world usage frequency), the passthrough shrinks and nit gets faster - no config changes needed.
 
 ## Compact vs Human
 
