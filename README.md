@@ -18,17 +18,19 @@ Measured with [hyperfine](https://github.com/sharkdp/hyperfine), 100 runs, Relea
 
 | Command | git equivalent | git | nit | Speedup |
 |---|---|---|---|---|
-| `status` | `git status --porcelain -b` | 11.3 ms | 7.6 ms | **1.49x faster** |
-| `diff` | `git diff -U1` | 11.2 ms | 8.1 ms | **1.38x faster** |
-| `log -20` | `git log -20 --oneline` | 6.5 ms | 6.6 ms | ~1x (parity) |
+| `status` | `git status --porcelain -b` | 13.7 ms | 8.4 ms | **1.64x faster** |
+| `diff` | `git diff -U1` | 14.3 ms | 9.9 ms | **1.44x faster** |
+| `show` | `git show` | 10.2 ms | 7.3 ms | **1.39x faster** |
+| `log -20` | `git log -20 --oneline` | 7.7 ms | 9.5 ms | ~0.8x (slower) |
 
 ### Token savings (nit default vs git default)
 
 | Command | `git` default | `nit` default | Savings |
 |---|---|---|---|
-| `status` | ~116 tokens | ~30 tokens | **74%** |
+| `status` | ~125 tokens | ~36 tokens | **71%** |
 | `log -20` | ~2,273 tokens | ~301 tokens | **87%** |
-| `diff` | ~942 tokens | ~622 tokens | **34%** |
+| `diff` | ~1,016 tokens | ~657 tokens | **35%** |
+| `show` | ~20,583 tokens | ~19,737 tokens | **4%** |
 
 *Token counts approximated at ~4 chars/token. Savings scale with repo size and dirty file count.*
 
