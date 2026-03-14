@@ -872,6 +872,185 @@ else
   echo "  SKIP: NIT_COLORS (script command not available)"
 fi
 
+# --- Human mode non-TTY formatting ---
+echo ""
+echo "human mode non-TTY (pipe):"
+
+# show -H piped (no TTY) should still produce human-readable text without ANSI
+check "show -H non-TTY has commit line" \
+  "$NIT show -H 2>&1 | grep -c '^commit '" \
+  "echo 1"
+
+check "show -H non-TTY has Author line" \
+  "$NIT show -H 2>&1 | grep -c '^Author:'" \
+  "echo 1"
+
+check "show -H non-TTY has Date line" \
+  "$NIT show -H 2>&1 | grep -c '^Date:'" \
+  "echo 1"
+
+check "show -H non-TTY no ANSI escapes" \
+  "$NIT show -H 2>&1 | grep -c $'\x1b'" \
+  "echo 0"
+
+check "log -H non-TTY includes date" \
+  "$NIT log -H -n 1 2>&1 | grep -cE '[0-9]{4}-[0-9]{2}-[0-9]{2}'" \
+  "echo 1"
+
+check "log -H non-TTY no ANSI escapes" \
+  "$NIT log -H -n 3 2>&1 | grep -c $'\x1b'" \
+  "echo 0"
+
+check "diff -H non-TTY includes stat line" \
+  "$NIT diff -H 2>&1 | head -1 | grep -cE '[0-9]+ file'" \
+  "echo 1"
+
+check "diff -H non-TTY no ANSI escapes" \
+  "$NIT diff -H 2>&1 | grep -c $'\x1b'" \
+  "echo 0"
+
+check "status -H non-TTY no ANSI escapes" \
+  "$NIT status -H 2>&1 | grep -c $'\x1b'" \
+  "echo 0"
+
+# --- show --stat + -H combined ---
+echo ""
+echo "show --stat -H:"
+
+check "show --stat -H includes commit header" \
+  "$NIT show --stat -H 2>&1 | grep -c '^commit '" \
+  "echo 1"
+
+check "show --stat -H includes stat line" \
+  "$NIT show --stat -H 2>&1 | grep -cE '[0-9]+ file'" \
+  "echo 1"
+
+check "show --stat -H has no diff hunks" \
+  "$NIT show --stat -H 2>&1 | grep -c '^@@'" \
+  "echo 0"
+
+# --- fmt.writeStat singular vs plural ---
+echo ""
+echo "writeStat formatting:"
+
+# The binary.dat commit only touches 1 file - should say "1 file" not "1 files"
+BINARY_HASH=$(git log --oneline -1 --all --grep="binary" | cut -d' ' -f1)
+check "show --stat singular file" \
+  "$NIT show --stat $BINARY_HASH 2>&1 | sed -n '2p' | grep -cE '^1 file,'" \
+  "echo 1"
+
+# Multi-file commit should say "files" plural
+MULTI_HASH=$(git log --oneline -1 --all --grep="Add config" | cut -d' ' -f1)
+check "show --stat plural files" \
+  "$NIT show --stat $MULTI_HASH 2>&1 | sed -n '2p' | grep -cE '[2-9] files,'" \
+  "echo 1"
+
+# Deletion-only file: per-file lines (indented with 2 spaces) should have -N
+check "show --stat delete-only file shows -N" \
+  "$NIT show --stat $DELETE_HASH 2>&1 | grep '^  ' | grep -c -- '-[0-9]'" \
+  "echo 1"
+
+# --- status -H section combinations ---
+echo ""
+echo "status -H section combos:"
+
+# Ensure all three states exist
+echo "staged change" >> utils.py
+git add utils.py
+sed -i.bak 's/hello nit/hello nit v3/' main.py && rm -f main.py.bak
+echo "# untracked" > untracked_test.txt
+check "status -H all three sections present" \
+  "$NIT status -H 2>&1 | grep -cE '^(staged:|unstaged:|untracked:)'" \
+  "echo 3"
+git checkout -q -- main.py
+git reset -q HEAD utils.py
+git checkout -q -- utils.py
+rm -f untracked_test.txt
+
+# Staged-only: stage everything, remove untracked
+git stash -q
+rm -f newfile.txt
+echo "staged only" > staged_only.txt
+git add staged_only.txt
+check "status -H staged-only has staged section" \
+  "$NIT status -H 2>&1 | grep -c '^staged:'" \
+  "echo 1"
+check "status -H staged-only no unstaged section" \
+  "$NIT status -H 2>&1 | grep -c '^unstaged:'" \
+  "echo 0"
+check "status -H staged-only no untracked section" \
+  "$NIT status -H 2>&1 | grep -c '^untracked:'" \
+  "echo 0"
+git reset -q HEAD staged_only.txt
+rm -f staged_only.txt
+git stash pop -q 2>/dev/null || true
+echo "# new file" > newfile.txt
+
+# Untracked-only
+git stash -q
+rm -f newfile.txt
+echo "just untracked" > only_untracked.txt
+check "status -H untracked-only has untracked section" \
+  "$NIT status -H 2>&1 | grep -c '^untracked:'" \
+  "echo 1"
+check "status -H untracked-only no staged section" \
+  "$NIT status -H 2>&1 | grep -c '^staged:'" \
+  "echo 0"
+rm -f only_untracked.txt
+git stash pop -q 2>/dev/null || true
+echo "# new file" > newfile.txt
+
+# --- showBlob edge cases ---
+echo ""
+echo "showBlob:"
+
+# Show a directory path (tree object, not blob) should fail
+check "show rev:directory exits non-zero" \
+  "$NIT show HEAD:. 2>/dev/null; [ \$? -ne 0 ] && echo error" \
+  "echo error"
+
+# Show rev:path with relative rev
+check "show HEAD~1:main.py works" \
+  "git show HEAD~1:main.py" \
+  "$NIT show HEAD~1:main.py 2>&1"
+
+# Show empty file
+touch empty_file.txt
+git add empty_file.txt
+git commit -q -m "Add empty file"
+check "show HEAD:empty_file produces no output" \
+  "git show HEAD:empty_file.txt" \
+  "$NIT show HEAD:empty_file.txt 2>&1"
+
+# --- diff -s (staged) edge cases ---
+echo ""
+echo "diff staged edge cases:"
+
+# Stage a new file and check diff -s output
+echo "new staged content" > staged_new.txt
+git add staged_new.txt
+check "diff -s new file shows additions" \
+  "git diff --staged -U1 | grep '^+' | grep -v '^+++'" \
+  "$NIT diff -s | grep '^+' | grep -v '^--- '"
+git reset -q HEAD staged_new.txt
+rm -f staged_new.txt
+
+# --- show initial commit (no parent tree) diff ---
+echo ""
+echo "show initial commit diff:"
+
+check "show initial commit has diff content" \
+  "$NIT show $FIRST_HASH 2>&1 | grep -c '^+'" \
+  "git show -U1 $FIRST_HASH | grep '^+' | grep -v '^+++' | wc -l | tr -d ' '"
+
+# --- log default count ---
+echo ""
+echo "log defaults:"
+
+check "log default returns up to 20 entries" \
+  "$NIT log 2>&1 | wc -l | tr -d ' '" \
+  "git log --oneline -20 | wc -l | tr -d ' '"
+
 # --- Summary ---
 echo ""
 echo "=== results ==="
