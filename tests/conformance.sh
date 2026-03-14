@@ -453,6 +453,178 @@ check "not a git repo exits 128" \
   "cd /tmp && git status 2>/dev/null; echo \$?" \
   "cd /tmp && $NIT status 2>/dev/null; echo \$?"
 
+# --- Human mode (-H) ---
+echo ""
+echo "human mode (-H):"
+
+check "status -H has unstaged section" \
+  "$NIT status -H 2>&1 | grep -c '^unstaged:'" \
+  "echo 1"
+
+check "status -H has untracked section" \
+  "$NIT status -H 2>&1 | grep -c '^untracked:'" \
+  "echo 1"
+
+check "status --human same as -H" \
+  "$NIT status -H 2>&1" \
+  "$NIT status --human 2>&1"
+
+check "log -H includes date" \
+  "$NIT log -H -n 1 2>&1 | grep -cE '[0-9]{4}-[0-9]{2}-[0-9]{2}'" \
+  "echo 1"
+
+check "log -H hash matches compact" \
+  "$NIT log -n 1 | cut -d' ' -f1" \
+  "$NIT log -H -n 1 2>&1 | cut -d' ' -f1"
+
+check "diff -H includes stat summary" \
+  "$NIT diff -H 2>&1 | head -1 | grep -cE '[0-9]+ file'" \
+  "echo 1"
+
+check "show -H includes full hash" \
+  "$NIT show -H 2>&1 | head -1 | grep -cE 'commit [0-9a-f]{40}'" \
+  "echo 1"
+
+check "show -H includes Author line" \
+  "$NIT show -H 2>&1 | grep -c '^Author:'" \
+  "echo 1"
+
+check "show -H includes Date line" \
+  "$NIT show -H 2>&1 | grep -cE '^Date:'" \
+  "echo 1"
+
+# --- Detached HEAD ---
+echo ""
+echo "detached HEAD:"
+
+git checkout -q --detach HEAD
+
+check "status in detached HEAD (sorted)" \
+  "git status --porcelain | sort" \
+  "$NIT status | sort"
+
+check "log in detached HEAD" \
+  "git log --oneline -3" \
+  "$NIT log -n 3"
+
+check "show in detached HEAD" \
+  "git log --oneline -1" \
+  "$NIT show 2>&1 | head -1"
+
+git checkout -q -
+
+# --- Staged deletion ---
+echo ""
+echo "staged deletion:"
+
+# git rm --cached leaves file on disk, so git shows "D  main.py" (deleted from index)
+# plus " D main.py" is NOT shown (file still exists but now untracked).
+# nit may show D? because libgit2 sees both deleted-from-index and untracked-in-workdir.
+# Compare that the D flag is present in the index column.
+git rm -q --cached main.py
+check "staged deletion has D in index column" \
+  "git status --porcelain | grep '^D' | wc -l | tr -d ' '" \
+  "$NIT status | grep '^D' | wc -l | tr -d ' '"
+
+check "status -H labels it deleted" \
+  "$NIT status -H 2>&1 | grep -c 'deleted:'" \
+  "echo 1"
+git reset -q HEAD main.py
+
+# --- Staged new file ---
+echo ""
+echo "staged new file:"
+
+echo "brand new" > brandnew.txt
+git add brandnew.txt
+check "staged new file shows A" \
+  "git status --porcelain | grep brandnew" \
+  "$NIT status | grep brandnew"
+
+check "status -H labels it new" \
+  "$NIT status -H 2>&1 | grep -c 'new:.*brandnew'" \
+  "echo 1"
+git reset -q HEAD brandnew.txt
+rm -f brandnew.txt
+
+# --- Flag edge cases ---
+echo ""
+echo "flag edge cases:"
+
+check "-n 0 shows nothing" \
+  "$NIT log -n 0 2>&1" \
+  ""
+
+check "--staged same as -s for diff" \
+  "$NIT diff -s 2>&1" \
+  "$NIT diff --staged 2>&1"
+
+check "log --stat passthrough" \
+  "git log --stat -1" \
+  "$NIT log --stat -1"
+
+# --- Not a repo for each command ---
+echo ""
+echo "not-a-repo (all commands):"
+
+check "log not-a-repo exits 128" \
+  "cd /tmp && git log 2>/dev/null; echo \$?" \
+  "cd /tmp && $NIT log 2>/dev/null; echo \$?"
+
+# git diff exits 129 outside a repo, nit exits 128. Both are non-zero error.
+check "diff not-a-repo exits non-zero" \
+  "cd /tmp && $NIT diff 2>/dev/null; [ \$? -ne 0 ] && echo error" \
+  "echo error"
+
+check "show not-a-repo exits 128" \
+  "cd /tmp && git show 2>/dev/null; echo \$?" \
+  "cd /tmp && $NIT show 2>/dev/null; echo \$?"
+
+# --- Compact format verification ---
+echo ""
+echo "compact format:"
+
+check "hunk headers end at @@" \
+  "$NIT diff 2>&1 | grep '^@@' | head -1 | grep -cE '@@$'" \
+  "echo 1"
+
+check "file headers use --- path format" \
+  "$NIT diff 2>&1 | grep '^--- ' | head -1 | grep -cE '^--- [a-zA-Z]'" \
+  "echo 1"
+
+# --- Alias + flag combos ---
+echo ""
+echo "alias + flag combos:"
+
+check "s -H works" \
+  "$NIT status -H 2>&1" \
+  "$NIT s -H 2>&1"
+
+check "l -H -n 3 works" \
+  "$NIT log -H -n 3 2>&1" \
+  "$NIT l -H -n 3 2>&1"
+
+check "d -s works" \
+  "$NIT diff -s 2>&1" \
+  "$NIT d -s 2>&1"
+
+# --- Human mode clean tree ---
+echo ""
+echo "human mode clean tree:"
+
+# Stash doesn't capture untracked files, so remove them first
+git stash -q
+rm -f newfile.txt
+check "status -H clean tree = empty" \
+  "$NIT status -H 2>&1" \
+  ""
+
+check "diff -H clean tree = empty" \
+  "$NIT diff -H 2>&1" \
+  ""
+git stash pop -q 2>/dev/null || true
+echo "# new file" > newfile.txt
+
 # --- Summary ---
 echo ""
 echo "=== results ==="
