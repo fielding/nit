@@ -1,61 +1,64 @@
 # nit
 
-the smallest unit of git.
+The smallest unit of git.
 
-nit is a native git replacement built with Zig + libgit2, optimized for AI agent consumption. smaller output, fewer tokens, faster execution.
+A native git replacement built with Zig + libgit2, optimized for AI agent consumption. Smaller output, fewer tokens, faster execution.
 
-## why
+## Why
 
-AI agents (Claude Code, Codex, Cursor, etc.) call git *constantly*. every call burns tokens on verbose output that machines don't need -decorative headers, instructional text, column padding. across a single session, this adds up to thousands of wasted tokens.
+AI agents (Claude Code, Codex, Cursor, etc.) call git *constantly*. Every call burns tokens on verbose output that machines don't need - decorative headers, instructional text, column padding. Across a single session, this adds up to thousands of wasted tokens.
 
 nit fixes this by defaulting to compact, machine-readable output while being **1.4-1.5x faster** than git thanks to native libgit2.
 
-## benchmarks
+## Benchmarks
 
-measured with [hyperfine](https://github.com/sharkdp/hyperfine), 100 runs, ReleaseFast build:
+Measured with [hyperfine](https://github.com/sharkdp/hyperfine), 100 runs, ReleaseFast build:
 
-### speed (equivalent output, apples-to-apples)
+### Speed (equivalent output, apples-to-apples)
 
-| command | git equivalent | git | nit | speedup |
+| Command | git equivalent | git | nit | Speedup |
 |---|---|---|---|---|
 | `status` | `git status --porcelain -b` | 11.3 ms | 7.6 ms | **1.49x faster** |
 | `diff` | `git diff -U1` | 11.2 ms | 8.1 ms | **1.38x faster** |
 | `log -20` | `git log -20 --oneline` | 6.5 ms | 6.6 ms | ~1x (parity) |
 
-### token savings (nit default vs git default)
+### Token savings (nit default vs git default)
 
-| command | `git` default | `nit` default | savings |
+| Command | `git` default | `nit` default | Savings |
 |---|---|---|---|
 | `status` | ~116 tokens | ~30 tokens | **74%** |
 | `log -20` | ~2,273 tokens | ~301 tokens | **87%** |
 | `diff` | ~942 tokens | ~622 tokens | **34%** |
 
-*token counts approximated at ~4 chars/token. savings scale with repo size and dirty file count.*
+*Token counts approximated at ~4 chars/token. Savings scale with repo size and dirty file count.*
 
-the speed gains come from libgit2 (no subprocess, native object db reads). the token savings come from compact defaults - the same flags exist in git, but agents don't use them because they'd need to be told to. nit just does it out of the box.
+The speed gains come from libgit2 (no subprocess, native object db reads). The token savings come from compact defaults - the same flags exist in git, but agents don't use them because they'd need to be told to. nit just does it out of the box.
 
-based on analysis of 3,156 real sessions across Claude Code, Codex, and Pi: git accounts for **~459K tokens** of output, representing **7.4% of all shell commands**. codex is the heaviest user at 10.7% of all bash calls being git. nit's compact defaults would cut **150-250K tokens** across those sessions.
+Based on analysis of 3,156 real sessions across Claude Code, Codex, and Pi: git accounts for **~459K tokens** of output, representing **7.4% of all shell commands**. Codex is the heaviest user at 10.7% of all bash calls being git. nit's compact defaults would cut **150-250K tokens** across those sessions.
 
-## install
+### Context line validation
 
-requires [libgit2](https://libgit2.org/) and [zig](https://ziglang.org/) 0.14+.
+We ran [experiments](experiments/) to validate our choice of 1 context line (vs git's default 3). Across 36 trials with varying difficulty (multi-file diffs, nested control flow, ambiguous similar blocks), agents scored perfectly at U0, U1, and U3. However, behavioral analysis of 561 real agent sessions showed agents rarely read files after diffing (only 3.9% of the time), meaning diff context is their primary source of surrounding code info. U1 balances savings with orientation. See [experiments/README.md](experiments/README.md) for details.
+
+## Install
+
+Requires [libgit2](https://libgit2.org/) and [zig](https://ziglang.org/) 0.14+.
 
 ```sh
-# dependencies
+# From source
 brew install libgit2 zig
-
-# build
 git clone https://github.com/fielding/nit.git
 cd nit
 zig build -Doptimize=ReleaseFast
-
-# install
 cp zig-out/bin/nit ~/.local/bin/
+
+# Or via Homebrew
+brew install fielding/tap/nit
 ```
 
-## usage
+## Usage
 
-nit defaults to compact, agent-optimized output. pass `-H` for human-readable formatting.
+nit defaults to compact, agent-optimized output. Pass `-H` for human-readable formatting with ANSI colors.
 
 ```sh
 nit status          # compact porcelain output
@@ -65,28 +68,28 @@ nit diff -s         # staged changes
 nit show            # HEAD commit + patch
 nit show abc123     # specific commit
 
-nit status -H       # grouped by staged/unstaged/untracked
-nit log -H          # includes dates
-nit diff -H         # 3-line context, full headers
+nit status -H       # grouped by staged/unstaged/untracked, colored
+nit log -H          # includes dates, colored hashes
+nit diff -H         # 3-line context, stat summary, colored output
 
 nit log -n 5        # limit to 5 commits
 ```
 
-### passthrough
+### Passthrough
 
-nit only optimizes a handful of commands today -the ones that burn the most tokens in real agent sessions. everything else is passed through to git automatically:
+nit only optimizes a handful of commands today - the ones that burn the most tokens in real agent sessions. Everything else is passed through to git automatically:
 
 ```sh
-nit commit -m "..."   # → git commit -m "..."
-nit push              # → git push
-nit checkout -b foo   # → git checkout -b foo
+nit commit -m "..."   # -> git commit -m "..."
+nit push              # -> git push
+nit checkout -b foo   # -> git checkout -b foo
 ```
 
-passthrough uses `execvpe` -it replaces the nit process with git directly. no subprocess, no wrapper overhead. it's as if you typed `git` yourself.
+Passthrough uses `execvpe` - it replaces the nit process with git directly. No subprocess, no wrapper overhead. It's as if you typed `git` yourself.
 
-this means you can `alias git=nit` and everything just works. as commands get optimized with native libgit2 implementations (prioritized by real-world usage frequency), the passthrough shrinks and nit gets faster -no config changes needed.
+This means you can `alias git=nit` and everything just works. As commands get optimized with native libgit2 implementations (prioritized by real-world usage frequency), the passthrough shrinks and nit gets faster - no config changes needed.
 
-## compact vs human
+## Compact vs Human
 
 ```
 $ nit status
@@ -115,35 +118,39 @@ e4f5g6h 2026-03-13 Add user authentication
 9i0j1k2 2026-03-12 Initial commit
 ```
 
-## how it works
+## How It Works
 
-nit uses [libgit2](https://libgit2.org/) directly via Zig's zero-cost C interop -no subprocess, no shell, no parsing git's text output. this is why it's faster: it reads the git object database natively instead of spawning a process and parsing stdout.
+nit uses [libgit2](https://libgit2.org/) directly via Zig's zero-cost C interop - no subprocess, no shell, no parsing git's text output. This is why it's faster: it reads the git object database natively instead of spawning a process and parsing stdout.
 
-for commands nit hasn't implemented yet, it calls `execvpe("git", ...)` which replaces the nit process with git -zero overhead, no wrapper tax.
+For commands nit hasn't implemented yet, it calls `execvpe("git", ...)` which replaces the nit process with git - zero overhead, no wrapper tax.
 
-## project structure
+## Project Structure
 
 ```
 src/
   main.zig        entry point
   cli.zig         arg parsing, dispatch, git passthrough
   git.zig         libgit2 wrapper (@cImport, repo, error handling)
+  color.zig       ANSI escape codes + TTY detection
   cmd/
     status.zig    compact + human output
     log.zig       oneline + human with dates
-    diff.zig      1-line context + human full context
+    diff.zig      stripped headers + colored human mode
+    show.zig      commit info + patch
 ```
 
-## roadmap
+## Roadmap
 
 - [x] `show` command (4th most token-heavy in real agent sessions)
-- [x] strip more diff chrome (remove `diff --git` / `---`/`+++` headers in compact mode)
+- [x] Strip diff chrome (remove `diff --git` / `---`/`+++` / hunk context text in compact mode)
+- [x] ANSI colored human mode (`-H`) for all commands
+- [x] Cross-platform release binaries (GitHub Actions)
+- [x] Homebrew formula (`brew install fielding/tap/nit`)
+- [x] Context line experiments validating U1 default
 - [ ] `branch` command (compact listing)
 - [ ] `stash` command
-- [ ] cross-platform release binaries (GitHub Actions)
-- [ ] homebrew formula
-- [ ] benchmark against larger repos (linux kernel, chromium)
+- [ ] Benchmark against larger repos (linux kernel, chromium)
 
-## license
+## License
 
 MIT
