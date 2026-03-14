@@ -48,7 +48,7 @@ pub fn run() !void {
     for (args[2..]) |arg| {
         if (std.mem.eql(u8, arg, "-H") or std.mem.eql(u8, arg, "--human")) {
             human = true;
-        } else if (std.mem.eql(u8, arg, "-s") or std.mem.eql(u8, arg, "--staged")) {
+        } else if ((std.mem.eql(u8, arg, "-s") or std.mem.eql(u8, arg, "--staged")) and (std.mem.eql(u8, cmd, "diff") or std.mem.eql(u8, cmd, "d"))) {
             staged = true;
         } else if (std.mem.eql(u8, arg, "--stat") and std.mem.eql(u8, cmd, "show")) {
             stat = true;

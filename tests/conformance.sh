@@ -344,6 +344,14 @@ check "diff --cached passthrough" \
   "git diff --cached" \
   "$NIT diff --cached"
 
+check "show -s passthrough (suppress diff)" \
+  "git show -s | wc -l | tr -d ' '" \
+  "$NIT show -s | wc -l | tr -d ' '"
+
+check "diff -s works (staged)" \
+  "git diff --staged -U1 | grep '^[+-]' | grep -v '^[+-][+-][+-]'" \
+  "$NIT diff -s | grep '^[+-]' | grep -v '^--- '"
+
 # --- Show --stat edge cases ---
 echo ""
 echo "show --stat (edge cases):"

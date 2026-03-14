@@ -25,7 +25,8 @@ pub fn run(repo: *c.git_repository, human: bool, count: usize, w: *Writer) !void
         try git.check(c.git_commit_lookup(&commit, repo, &oid));
         defer c.git_commit_free(commit);
 
-        const summary = std.mem.span(c.git_commit_summary(commit));
+        const raw_summary = c.git_commit_summary(commit);
+        const summary: []const u8 = if (raw_summary != null) std.mem.span(raw_summary) else "(empty)";
 
         var oid_buf: [c.GIT_OID_SHA1_HEXSIZE + 1]u8 = undefined;
         _ = c.git_oid_tostr(&oid_buf, oid_buf.len, &oid);

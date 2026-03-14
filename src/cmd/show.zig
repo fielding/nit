@@ -30,7 +30,8 @@ pub fn run(repo: *c.git_repository, human: bool, stat: bool, rev: ?[]const u8, w
     var oid_buf: [c.GIT_OID_SHA1_HEXSIZE + 1]u8 = undefined;
     _ = c.git_oid_tostr(&oid_buf, oid_buf.len, &oid);
     const short_hash = oid_buf[0..7];
-    const summary = std.mem.span(c.git_commit_summary(commit));
+    const raw_summary = c.git_commit_summary(commit);
+    const summary: []const u8 = if (raw_summary != null) std.mem.span(raw_summary) else "(empty)";
     const use_color = human and color.isTty();
 
     if (human) {

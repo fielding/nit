@@ -79,10 +79,11 @@ pub fn humanCallback(
             if (delta != null) {
                 const path = delta.*.new_file.path;
                 if (path != null and slice.len >= 4 and std.mem.eql(u8, slice[0..4], "diff")) {
-                    const new_path = path;
-                    if (ctx.current_file == null or ctx.current_file != new_path) {
+                    const new_path = std.mem.span(path);
+                    const cur = if (ctx.current_file) |cf| std.mem.span(cf) else "";
+                    if (!std.mem.eql(u8, cur, new_path)) {
                         if (ctx.current_file != null) w.writeByte('\n') catch return -1;
-                        ctx.current_file = new_path;
+                        ctx.current_file = path;
                         const path_str = std.mem.span(path);
                         if (ctx.use_color) {
                             w.writeAll(color.bold) catch return -1;
@@ -208,7 +209,8 @@ pub const Date = struct {
 };
 
 pub fn epochToDate(timestamp: c_long) Date {
-    const ts: u64 = @intCast(timestamp);
+    // Pre-1970 timestamps are negative; clamp to epoch
+    const ts: u64 = if (timestamp > 0) @intCast(timestamp) else 0;
     const epoch = std.time.epoch.EpochSeconds{ .secs = ts };
     const day_count = epoch.getEpochDay();
     const yd = day_count.calculateYearDay();
