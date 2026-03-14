@@ -107,32 +107,23 @@ As commands and flags get optimized with native libgit2 implementations (priorit
 
 ## Compact vs Human
 
-```
-$ nit status
- M src/main.zig
- M src/cli.zig
-?? TODO.md
+### Status
 
-$ nit status -H
-unstaged:
-  modified: src/main.zig
-  modified: src/cli.zig
+Compact (default) shows porcelain flags. Human (`-H`) groups by staged/unstaged/untracked with colored labels.
 
-untracked:
-  TODO.md
-```
+![status comparison](.github/assets/status-comparison.png)
 
-```
-$ nit log -n 3
-a1b2c3d Fix null pointer in parser
-e4f5g6h Add user authentication
-9i0j1k2 Initial commit
+### Diff
 
-$ nit log -n 3 -H
-a1b2c3d 2026-03-14 Fix null pointer in parser
-e4f5g6h 2026-03-13 Add user authentication
-9i0j1k2 2026-03-12 Initial commit
-```
+Human mode shows a stat summary, bold filenames, colored additions/deletions, and dimmed context lines.
+
+![human diff](.github/assets/human-diff.png)
+
+### Log
+
+Human mode adds dates and colored hashes.
+
+![human log](.github/assets/human-log.png)
 
 ## How It Works
 
