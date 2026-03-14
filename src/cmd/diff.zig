@@ -68,8 +68,14 @@ fn printCallback(
                 w.writeAll(slice) catch return -1;
             },
             'H' => {
-                // Keep hunk headers - they show line numbers
-                w.writeAll(slice) catch return -1;
+                // Strip trailing context text after closing @@
+                // "@@ -13,4 +13,4 @@ case..." -> "@@ -13,4 +13,4 @@\n"
+                if (std.mem.indexOf(u8, slice, " @@")) |pos| {
+                    w.writeAll(slice[0 .. pos + 3]) catch return -1;
+                    w.writeByte('\n') catch return -1;
+                } else {
+                    w.writeAll(slice) catch return -1;
+                }
             },
             'F' => {
                 // Replace verbose file header with just the path

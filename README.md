@@ -8,7 +8,7 @@ nit is a native git replacement built with Zig + libgit2, optimized for AI agent
 
 AI agents (Claude Code, Codex, Cursor, etc.) call git *constantly*. every call burns tokens on verbose output that machines don't need -decorative headers, instructional text, column padding. across a single session, this adds up to thousands of wasted tokens.
 
-nit fixes this by defaulting to compact, machine-readable output while being **1.5-1.7x faster** than git thanks to native libgit2.
+nit fixes this by defaulting to compact, machine-readable output while being **1.4-1.5x faster** than git thanks to native libgit2.
 
 ## benchmarks
 
@@ -18,9 +18,9 @@ measured with [hyperfine](https://github.com/sharkdp/hyperfine), 100 runs, Relea
 
 | command | git equivalent | git | nit | speedup |
 |---|---|---|---|---|
-| `status` | `git status --porcelain -b` | 14.3 ms | 8.9 ms | **1.61x faster** |
-| `diff` | `git diff -U1` | 14.1 ms | 9.6 ms | **1.47x faster** |
-| `log -20` | `git log -20 --oneline` | 8.6 ms | 8.7 ms | ~1x (parity) |
+| `status` | `git status --porcelain -b` | 11.3 ms | 7.6 ms | **1.49x faster** |
+| `diff` | `git diff -U1` | 11.2 ms | 8.1 ms | **1.38x faster** |
+| `log -20` | `git log -20 --oneline` | 6.5 ms | 6.6 ms | ~1x (parity) |
 
 ### token savings (nit default vs git default)
 
@@ -28,8 +28,7 @@ measured with [hyperfine](https://github.com/sharkdp/hyperfine), 100 runs, Relea
 |---|---|---|---|
 | `status` | ~116 tokens | ~30 tokens | **74%** |
 | `log -20` | ~2,273 tokens | ~301 tokens | **87%** |
-| `diff` | ~942 tokens | ~666 tokens | **29%** |
-| `show` | ~20,582 tokens | ~19,845 tokens | **4%** |
+| `diff` | ~942 tokens | ~622 tokens | **34%** |
 
 *token counts approximated at ~4 chars/token. savings scale with repo size and dirty file count.*
 

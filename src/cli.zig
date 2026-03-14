@@ -28,9 +28,6 @@ pub fn run() !void {
     var file_writer = std.fs.File.stdout().writer(&buf);
     const w = &file_writer.interface;
 
-    try git.init();
-    defer git.deinit();
-
     const args = try std.process.argsAlloc(std.heap.page_allocator);
     defer std.process.argsFree(std.heap.page_allocator, args);
 
@@ -62,6 +59,27 @@ pub fn run() !void {
 
     const cmd = args[1];
 
+    // Passthrough and help skip libgit2 entirely for faster startup
+    if (std.mem.eql(u8, cmd, "help") or std.mem.eql(u8, cmd, "-h") or std.mem.eql(u8, cmd, "--help")) {
+        try w.writeAll(usage);
+        try w.flush();
+        return;
+    }
+
+    const is_native = std.mem.eql(u8, cmd, "status") or std.mem.eql(u8, cmd, "s") or
+        std.mem.eql(u8, cmd, "log") or std.mem.eql(u8, cmd, "l") or
+        std.mem.eql(u8, cmd, "diff") or std.mem.eql(u8, cmd, "d") or
+        std.mem.eql(u8, cmd, "show");
+
+    if (!is_native) {
+        try w.flush();
+        return passthrough(args);
+    }
+
+    // Only init libgit2 for native commands
+    try git.init();
+    defer git.deinit();
+
     // Native commands — optimized output via libgit2
     if (std.mem.eql(u8, cmd, "status") or std.mem.eql(u8, cmd, "s")) {
         var repo = try openRepo(w);
@@ -87,12 +105,6 @@ pub fn run() !void {
             }
         }
         try show.run(repo.repo, human, rev, w);
-    } else if (std.mem.eql(u8, cmd, "help") or std.mem.eql(u8, cmd, "-h") or std.mem.eql(u8, cmd, "--help")) {
-        try w.writeAll(usage);
-    } else {
-        // Passthrough — delegate to git for unimplemented commands
-        try w.flush();
-        return passthrough(args);
     }
 
     try w.flush();

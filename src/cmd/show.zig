@@ -124,7 +124,12 @@ fn printCallback(
                 w.writeAll(slice) catch return -1;
             },
             'H' => {
-                w.writeAll(slice) catch return -1;
+                if (std.mem.indexOf(u8, slice, " @@")) |pos| {
+                    w.writeAll(slice[0 .. pos + 3]) catch return -1;
+                    w.writeByte('\n') catch return -1;
+                } else {
+                    w.writeAll(slice) catch return -1;
+                }
             },
             'F' => {
                 if (delta != null) {
