@@ -72,13 +72,15 @@ nit diff            # 1-line context, stripped file headers
 nit diff -s         # staged changes
 nit show            # HEAD commit + patch
 nit show abc123     # specific commit
+nit show HEAD:path  # file content at revision
+nit show --stat     # compact file change summary
+nit branch          # list local branches
 
 nit status -H       # grouped by staged/unstaged/untracked, colored
 nit log -H          # includes dates, colored hashes
 nit diff -H         # 3-line context, stat summary, colored output
 
 nit log -n 5        # limit to 5 commits
-nit show --stat     # compact file change summary
 ```
 
 ### Passthrough
@@ -146,20 +148,35 @@ src/
   main.zig        entry point
   cli.zig         arg parsing, dispatch, git passthrough
   git.zig         libgit2 wrapper (@cImport, repo, error handling)
-  color.zig       ANSI escape codes + TTY detection
+  color.zig       ANSI colors + NIT_COLORS env var support
   fmt.zig         shared diff callbacks, stat output, date formatting
   cmd/
     status.zig    compact + human output
     log.zig       oneline + human with dates
     diff.zig      stripped headers + colored human mode
-    show.zig      commit info + patch + --stat
+    show.zig      commit info + patch + --stat + rev:path blob
+    branch.zig    branch listing
 ```
+
+## Color Customization
+
+nit uses standard ANSI colors by default, so it respects your terminal theme. To override specific colors, set the `NIT_COLORS` environment variable:
+
+```sh
+export NIT_COLORS="add=32:del=31:hunk=36:staged=32:unstaged=31:hash=33:date=2:context=2"
+```
+
+Values are ANSI SGR parameters. True-color is supported:
+
+```sh
+export NIT_COLORS="staged=38;2;4;179;114:unstaged=38;2;231;52;156"
+```
+
+Available slots: `add`, `del`, `hunk`, `context`, `staged`, `unstaged`, `hash`, `date`.
 
 ## Roadmap
 
-- [ ] `branch` command (compact listing)
 - [ ] `stash` command
-- [ ] `show <rev>:<path>` native implementation (36% of show usage)
 - [ ] Benchmark against larger repos (linux kernel, chromium)
 
 ## License
