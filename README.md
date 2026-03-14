@@ -43,7 +43,7 @@ requires [libgit2](https://libgit2.org/) and [zig](https://ziglang.org/) 0.14+.
 brew install libgit2 zig
 
 # build
-git clone https://github.com/your-username/nit.git
+git clone https://github.com/fielding/nit.git
 cd nit
 zig build -Doptimize=ReleaseFast
 
