@@ -1,14 +1,17 @@
-const c = @import("c.zig");
 const std = @import("std");
+
+pub const c = @cImport({
+    @cInclude("git2.h");
+});
 
 pub const Repository = struct {
     repo: *c.git_repository,
 
     pub fn openFromCwd() !Repository {
         var repo: ?*c.git_repository = null;
-        const cwd = std.fs.cwd();
+        const cwd_dir = std.fs.cwd();
         var buf: [std.fs.max_path_bytes]u8 = undefined;
-        const path = try cwd.realpath(".", &buf);
+        const path = try cwd_dir.realpath(".", &buf);
         const path_z = try std.heap.page_allocator.dupeZ(u8, path);
         defer std.heap.page_allocator.free(path_z);
 
@@ -34,7 +37,7 @@ pub fn check(err: c_int) !void {
         const e = c.git_error_last();
         if (e) |err_info| {
             const msg = std.mem.span(err_info.*.message);
-            std.debug.print("git error: {s}\n", .{msg});
+            std.debug.print("nit: {s}\n", .{msg});
         }
         return error.GitError;
     }

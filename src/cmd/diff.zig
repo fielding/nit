@@ -1,6 +1,6 @@
 const std = @import("std");
-const c = @import("c.zig");
-const git = @import("git.zig");
+const git = @import("../git.zig");
+const c = git.c;
 
 const Writer = std.Io.Writer;
 
@@ -67,10 +67,7 @@ fn printCallback(
                 w.writeByte(@intCast(line.*.origin)) catch return -1;
                 w.writeAll(slice) catch return -1;
             },
-            'H' => {
-                w.writeAll(slice) catch return -1;
-            },
-            'F' => {
+            'H', 'F' => {
                 w.writeAll(slice) catch return -1;
             },
             else => {},

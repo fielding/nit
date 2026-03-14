@@ -1,6 +1,6 @@
 const std = @import("std");
-const c = @import("c.zig");
-const git = @import("git.zig");
+const git = @import("../git.zig");
+const c = git.c;
 
 const Writer = std.Io.Writer;
 const default_count: usize = 20;
