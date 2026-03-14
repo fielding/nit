@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
+
+      - name: Install libgit2 (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgit2-dev
+
+      - name: Install libgit2 (macOS)
+        if: runner.os == 'macOS'
+        run: brew install libgit2
+
+      - name: Build
+        run: zig build
+
+      - name: Build (ReleaseFast)
+        run: zig build -Doptimize=ReleaseFast
+
+      - name: Smoke test
+        run: |
+          git log --oneline -5
+          ./zig-out/bin/nit status
+          ./zig-out/bin/nit log -n 5
+          ./zig-out/bin/nit show
