@@ -140,6 +140,14 @@ nit uses [libgit2](https://libgit2.org/) directly via Zig's zero-cost C interop 
 
 For commands nit hasn't implemented yet, it calls `execvpe("git", ...)` which replaces the nit process with git - zero overhead, no wrapper tax.
 
+## Testing
+
+78 conformance tests verify nit's output matches git across: all 4 commands in compact and human mode, passthrough for unknown commands and flags, edge cases (clean tree, deleted files, renames, merge commits, detached HEAD, staged new/delete, subdirectories, aliases, flag combos, not-a-repo).
+
+```sh
+zig build && ./tests/conformance.sh
+```
+
 ## Project Structure
 
 ```
@@ -148,23 +156,19 @@ src/
   cli.zig         arg parsing, dispatch, git passthrough
   git.zig         libgit2 wrapper (@cImport, repo, error handling)
   color.zig       ANSI escape codes + TTY detection
+  fmt.zig         shared diff callbacks, stat output, date formatting
   cmd/
     status.zig    compact + human output
     log.zig       oneline + human with dates
     diff.zig      stripped headers + colored human mode
-    show.zig      commit info + patch
+    show.zig      commit info + patch + --stat
 ```
 
 ## Roadmap
 
-- [x] `show` command (4th most token-heavy in real agent sessions)
-- [x] Strip diff chrome (remove `diff --git` / `---`/`+++` / hunk context text in compact mode)
-- [x] ANSI colored human mode (`-H`) for all commands
-- [x] Cross-platform release binaries (GitHub Actions)
-- [x] Homebrew formula (`brew install fielding/tap/nit`)
-- [x] Context line experiments validating U1 default
 - [ ] `branch` command (compact listing)
 - [ ] `stash` command
+- [ ] `show <rev>:<path>` native implementation (36% of show usage)
 - [ ] Benchmark against larger repos (linux kernel, chromium)
 
 ## License
