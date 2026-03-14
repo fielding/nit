@@ -34,7 +34,7 @@ measured with [hyperfine](https://github.com/sharkdp/hyperfine), 100 runs, Relea
 
 the speed gains come from libgit2 (no subprocess, native object db reads). the token savings come from compact defaults - the same flags exist in git, but agents don't use them because they'd need to be told to. nit just does it out of the box.
 
-based on analysis of 2,830 real Claude Code sessions: git accounts for **310K+ tokens** of output. nit's compact defaults would save **100-150K tokens** across those sessions.
+based on analysis of 3,156 real sessions across Claude Code, Codex, and Pi: git accounts for **~459K tokens** of output, representing **7.4% of all shell commands**. codex is the heaviest user at 10.7% of all bash calls being git. nit's compact defaults would cut **150-250K tokens** across those sessions.
 
 ## install
 
