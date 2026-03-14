@@ -99,7 +99,7 @@ pub fn humanCallback(
         },
         'H' => {
             if (ctx.use_color) {
-                w.writeAll(color.cyan) catch return -1;
+                w.writeAll(color.hunk) catch return -1;
                 w.writeAll(slice) catch return -1;
                 w.writeAll(color.reset) catch return -1;
             } else {
@@ -108,7 +108,7 @@ pub fn humanCallback(
         },
         '+' => {
             if (ctx.use_color) {
-                w.writeAll(color.bright_green) catch return -1;
+                w.writeAll(color.add) catch return -1;
                 w.writeByte('+') catch return -1;
                 w.writeAll(slice) catch return -1;
                 w.writeAll(color.reset) catch return -1;
@@ -119,7 +119,7 @@ pub fn humanCallback(
         },
         '-' => {
             if (ctx.use_color) {
-                w.writeAll(color.bright_red) catch return -1;
+                w.writeAll(color.del) catch return -1;
                 w.writeByte('-') catch return -1;
                 w.writeAll(slice) catch return -1;
                 w.writeAll(color.reset) catch return -1;
@@ -130,7 +130,7 @@ pub fn humanCallback(
         },
         ' ' => {
             if (ctx.use_color) {
-                w.writeAll(color.dim) catch return -1;
+                w.writeAll(color.context) catch return -1;
                 w.writeByte(' ') catch return -1;
                 w.writeAll(slice) catch return -1;
                 w.writeAll(color.reset) catch return -1;
@@ -157,8 +157,8 @@ pub fn writeStat(diff_result: ?*c.git_diff, use_color: bool, w: *Writer) !void {
 
     if (use_color) {
         try w.print("{s}{d} file{s}{s}, ", .{ color.bold, total_files, if (total_files != 1) "s" else "", color.reset });
-        try w.print("{s}+{d}{s} ", .{ color.bright_green, total_add, color.reset });
-        try w.print("{s}-{d}{s}\n", .{ color.bright_red, total_del, color.reset });
+        try w.print("{s}+{d}{s} ", .{ color.add, total_add, color.reset });
+        try w.print("{s}-{d}{s}\n", .{ color.del, total_del, color.reset });
     } else {
         try w.print("{d} file{s}, +{d} -{d}\n", .{ total_files, if (total_files != 1) "s" else "", total_add, total_del });
     }
@@ -186,9 +186,9 @@ pub fn writeStat(diff_result: ?*c.git_diff, use_color: bool, w: *Writer) !void {
 
         if (use_color) {
             try w.print("  {s} ", .{path});
-            if (file_add > 0) try w.print("{s}+{d}{s}", .{ color.bright_green, file_add, color.reset });
+            if (file_add > 0) try w.print("{s}+{d}{s}", .{ color.add, file_add, color.reset });
             if (file_add > 0 and file_del > 0) try w.writeByte(' ');
-            if (file_del > 0) try w.print("{s}-{d}{s}", .{ color.bright_red, file_del, color.reset });
+            if (file_del > 0) try w.print("{s}-{d}{s}", .{ color.del, file_del, color.reset });
             try w.writeByte('\n');
         } else {
             try w.print("  {s} ", .{path});

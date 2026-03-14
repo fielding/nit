@@ -4,6 +4,8 @@ const status = @import("cmd/status.zig");
 const log = @import("cmd/log.zig");
 const diff = @import("cmd/diff.zig");
 const show = @import("cmd/show.zig");
+const branch = @import("cmd/branch.zig");
+const color = @import("color.zig");
 
 const usage =
     \\nit - the smallest unit of git
@@ -16,6 +18,7 @@ const usage =
     \\  diff      unstaged changes (1-line context)
     \\  diff -s   staged changes
     \\  show      commit details + patch
+    \\  branch    list branches
     \\
     \\flags:
     \\  -H        human-readable output
@@ -24,6 +27,8 @@ const usage =
 ;
 
 pub fn run() !void {
+    color.init();
+
     var buf: [8192]u8 = undefined;
     var file_writer = std.fs.File.stdout().writer(&buf);
     const w = &file_writer.interface;
@@ -84,7 +89,8 @@ pub fn run() !void {
     const is_native = std.mem.eql(u8, cmd, "status") or std.mem.eql(u8, cmd, "s") or
         std.mem.eql(u8, cmd, "log") or std.mem.eql(u8, cmd, "l") or
         std.mem.eql(u8, cmd, "diff") or std.mem.eql(u8, cmd, "d") or
-        std.mem.eql(u8, cmd, "show");
+        std.mem.eql(u8, cmd, "show") or
+        std.mem.eql(u8, cmd, "branch") or std.mem.eql(u8, cmd, "b");
 
     if (!is_native) {
         try w.flush();
@@ -114,6 +120,8 @@ pub fn run() !void {
             }
         }
         try show.run(repo.repo, human, stat, rev, w);
+    } else if (std.mem.eql(u8, cmd, "branch") or std.mem.eql(u8, cmd, "b")) {
+        try branch.run(repo.repo, human, w);
     }
 
     try w.flush();

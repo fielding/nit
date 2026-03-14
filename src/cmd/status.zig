@@ -80,7 +80,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
     }
 
     if (has_staged) {
-        if (use_color) try w.print("{s}{s}staged:{s}\n", .{ color.bold, color.green, color.reset }) else try w.writeAll("staged:\n");
+        if (use_color) try w.print("{s}{s}staged:{s}\n", .{ color.bold, color.staged, color.reset }) else try w.writeAll("staged:\n");
         for (0..count) |i| {
             const entry = c.git_status_byindex(status_list, i);
             if (entry == null) continue;
@@ -89,7 +89,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
             if (label) |l| {
                 const path = if (entry.*.head_to_index != null) entry.*.head_to_index.*.new_file.path else continue;
                 if (use_color) {
-                    try w.print("  {s}{s}:{s} {s}\n", .{ color.bright_green, l, color.reset, std.mem.span(path) });
+                    try w.print("  {s}{s}:{s} {s}\n", .{ color.staged_label, l, color.reset, std.mem.span(path) });
                 } else {
                     try w.print("  {s}: {s}\n", .{ l, std.mem.span(path) });
                 }
@@ -99,7 +99,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
 
     if (has_unstaged) {
         if (has_staged) try w.writeByte('\n');
-        if (use_color) try w.print("{s}{s}unstaged:{s}\n", .{ color.bold, color.red, color.reset }) else try w.writeAll("unstaged:\n");
+        if (use_color) try w.print("{s}{s}unstaged:{s}\n", .{ color.bold, color.unstaged, color.reset }) else try w.writeAll("unstaged:\n");
         for (0..count) |i| {
             const entry = c.git_status_byindex(status_list, i);
             if (entry == null) continue;
@@ -109,7 +109,7 @@ fn writeHuman(status_list: ?*c.git_status_list, count: usize, w: *Writer) !void 
             if (label) |l| {
                 const path = if (entry.*.index_to_workdir != null) entry.*.index_to_workdir.*.new_file.path else continue;
                 if (use_color) {
-                    try w.print("  {s}{s}:{s} {s}\n", .{ color.bright_red, l, color.reset, std.mem.span(path) });
+                    try w.print("  {s}{s}:{s} {s}\n", .{ color.unstaged_label, l, color.reset, std.mem.span(path) });
                 } else {
                     try w.print("  {s}: {s}\n", .{ l, std.mem.span(path) });
                 }

@@ -37,8 +37,8 @@ pub fn run(repo: *c.git_repository, human: bool, count: usize, w: *Writer) !void
             const d = fmt.epochToDate(c.git_commit_time(commit));
             if (use_color) {
                 try w.print("{s}{s}{s} {s}{d}-{d:0>2}-{d:0>2}{s} {s}\n", .{
-                    color.yellow, short_hash, color.reset,
-                    color.dim,    d.year,  d.month, d.day, color.reset,
+                    color.hash,   short_hash, color.reset,
+                    color.date,   d.year,  d.month, d.day, color.reset,
                     summary,
                 });
             } else {

@@ -7,6 +7,13 @@ const fmt = @import("../fmt.zig");
 const Writer = std.Io.Writer;
 
 pub fn run(repo: *c.git_repository, human: bool, stat: bool, rev: ?[]const u8, w: *Writer) !void {
+    // Handle "rev:path" syntax - show file content at a revision
+    if (rev) |r| {
+        if (std.mem.indexOfScalar(u8, r, ':') != null) {
+            return showBlob(repo, r, w);
+        }
+    }
+
     var oid: c.git_oid = undefined;
 
     if (rev) |r| {
@@ -42,7 +49,7 @@ pub fn run(repo: *c.git_repository, human: bool, stat: bool, rev: ?[]const u8, w
         const d = fmt.epochToDate(c.git_commit_time(commit));
 
         if (use_color) {
-            try w.print("{s}commit {s}{s}\n", .{ color.yellow, full_hash, color.reset });
+            try w.print("{s}commit {s}{s}\n", .{ color.hash, full_hash, color.reset });
             try w.print("{s}Author:{s} {s} <{s}>\n", .{ color.bold, color.reset, name, email });
             try w.print("{s}Date:{s}   {d}-{d:0>2}-{d:0>2}\n", .{ color.bold, color.reset, d.year, d.month, d.day });
         } else {
@@ -85,5 +92,33 @@ pub fn run(repo: *c.git_repository, human: bool, stat: bool, rev: ?[]const u8, w
     } else {
         var ctx = fmt.CompactCtx{ .writer = w };
         _ = c.git_diff_print(diff_result, c.GIT_DIFF_FORMAT_PATCH, fmt.compactCallback, @ptrCast(&ctx));
+    }
+}
+
+fn showBlob(repo: *c.git_repository, rev: []const u8, w: *Writer) !void {
+    const rev_z = try std.heap.page_allocator.dupeZ(u8, rev);
+    defer std.heap.page_allocator.free(rev_z);
+
+    var obj: ?*c.git_object = null;
+    try git.check(c.git_revparse_single(&obj, repo, rev_z));
+    defer c.git_object_free(obj);
+
+    // Verify it resolved to a blob
+    if (c.git_object_type(obj) != c.GIT_OBJECT_BLOB) {
+        std.debug.print("fatal: not a blob\n", .{});
+        std.process.exit(1);
+    }
+
+    var blob: ?*c.git_blob = null;
+    try git.check(c.git_blob_lookup(&blob, repo, c.git_object_id(obj)));
+    defer c.git_blob_free(blob);
+
+    const content = c.git_blob_rawcontent(blob);
+    const size = c.git_blob_rawsize(blob);
+
+    if (content != null and size > 0) {
+        const bytes: [*]const u8 = @ptrCast(content);
+        const len: usize = @intCast(size);
+        try w.writeAll(bytes[0..len]);
     }
 }
