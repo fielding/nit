@@ -37,6 +37,8 @@ pub fn run() !void {
         return;
     }
 
+    const cmd = args[1];
+
     var human = false;
     var count: usize = 20;
     var staged = false;
@@ -48,7 +50,7 @@ pub fn run() !void {
             human = true;
         } else if (std.mem.eql(u8, arg, "-s") or std.mem.eql(u8, arg, "--staged")) {
             staged = true;
-        } else if (std.mem.eql(u8, arg, "--stat")) {
+        } else if (std.mem.eql(u8, arg, "--stat") and std.mem.eql(u8, cmd, "show")) {
             stat = true;
         } else if (std.mem.eql(u8, arg, "-n")) {
             // Handled below with value parsing
@@ -71,8 +73,6 @@ pub fn run() !void {
         try w.flush();
         return passthrough(args);
     }
-
-    const cmd = args[1];
 
     // Passthrough and help skip libgit2 entirely for faster startup
     if (std.mem.eql(u8, cmd, "help") or std.mem.eql(u8, cmd, "-h") or std.mem.eql(u8, cmd, "--help")) {

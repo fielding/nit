@@ -12,7 +12,7 @@ pub fn run(repo: *c.git_repository, human: bool, count: usize, w: *Writer) !void
     defer c.git_revwalk_free(walk);
 
     try git.check(c.git_revwalk_push_head(walk));
-    _ = c.git_revwalk_sorting(walk, c.GIT_SORT_TIME);
+    _ = c.git_revwalk_sorting(walk, c.GIT_SORT_TIME | c.GIT_SORT_TOPOLOGICAL);
 
     var oid: c.git_oid = undefined;
     var shown: usize = 0;
