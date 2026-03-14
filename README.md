@@ -28,7 +28,8 @@ measured with [hyperfine](https://github.com/sharkdp/hyperfine), 100 runs, Relea
 |---|---|---|---|
 | `status` | ~116 tokens | ~30 tokens | **74%** |
 | `log -20` | ~2,273 tokens | ~301 tokens | **87%** |
-| `diff` | ~942 tokens | ~811 tokens | **14%** |
+| `diff` | ~942 tokens | ~666 tokens | **29%** |
+| `show` | ~20,582 tokens | ~19,845 tokens | **4%** |
 
 *token counts approximated at ~4 chars/token. savings scale with repo size and dirty file count.*
 
@@ -60,8 +61,10 @@ nit defaults to compact, agent-optimized output. pass `-H` for human-readable fo
 ```sh
 nit status          # compact porcelain output
 nit log             # oneline, 20 most recent
-nit diff            # 1-line context, minimal headers
+nit diff            # 1-line context, stripped file headers
 nit diff -s         # staged changes
+nit show            # HEAD commit + patch
+nit show abc123     # specific commit
 
 nit status -H       # grouped by staged/unstaged/untracked
 nit log -H          # includes dates
@@ -134,8 +137,8 @@ src/
 
 ## roadmap
 
-- [ ] `show` command (4th most token-heavy in real agent sessions)
-- [ ] strip more diff chrome (remove `diff --git` / `---`/`+++` headers in compact mode)
+- [x] `show` command (4th most token-heavy in real agent sessions)
+- [x] strip more diff chrome (remove `diff --git` / `---`/`+++` headers in compact mode)
 - [ ] `branch` command (compact listing)
 - [ ] `stash` command
 - [ ] cross-platform release binaries (GitHub Actions)

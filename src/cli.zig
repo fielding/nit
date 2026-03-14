@@ -3,6 +3,7 @@ const git = @import("git.zig");
 const status = @import("cmd/status.zig");
 const log = @import("cmd/log.zig");
 const diff = @import("cmd/diff.zig");
+const show = @import("cmd/show.zig");
 
 const usage =
     \\nit - the smallest unit of git
@@ -14,6 +15,7 @@ const usage =
     \\  log       commit history (oneline)
     \\  diff      unstaged changes (1-line context)
     \\  diff -s   staged changes
+    \\  show      commit details + patch
     \\
     \\flags:
     \\  -H        human-readable output
@@ -73,6 +75,18 @@ pub fn run() !void {
         var repo = try openRepo(w);
         defer repo.deinit();
         try diff.run(repo.repo, human, staged, w);
+    } else if (std.mem.eql(u8, cmd, "show")) {
+        var repo = try openRepo(w);
+        defer repo.deinit();
+        // Find revision arg (first non-flag arg after "show")
+        var rev: ?[]const u8 = null;
+        for (args[2..]) |arg| {
+            if (arg.len > 0 and arg[0] != '-') {
+                rev = arg;
+                break;
+            }
+        }
+        try show.run(repo.repo, human, rev, w);
     } else if (std.mem.eql(u8, cmd, "help") or std.mem.eql(u8, cmd, "-h") or std.mem.eql(u8, cmd, "--help")) {
         try w.writeAll(usage);
     } else {

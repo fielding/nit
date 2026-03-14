@@ -47,7 +47,7 @@ const PrintCtx = struct {
 };
 
 fn printCallback(
-    _: [*c]const c.git_diff_delta,
+    delta: [*c]const c.git_diff_delta,
     _: [*c]const c.git_diff_hunk,
     line: [*c]const c.git_diff_line,
     payload: ?*anyopaque,
@@ -67,8 +67,25 @@ fn printCallback(
                 w.writeByte(@intCast(line.*.origin)) catch return -1;
                 w.writeAll(slice) catch return -1;
             },
-            'H', 'F' => {
+            'H' => {
+                // Keep hunk headers - they show line numbers
                 w.writeAll(slice) catch return -1;
+            },
+            'F' => {
+                // Replace verbose file header with just the path
+                // Only print once per file (the file header fires multiple lines)
+                if (delta != null) {
+                    const path = delta.*.new_file.path;
+                    if (path != null) {
+                        // Check if this is the first header line (starts with "diff")
+                        if (slice.len >= 4 and std.mem.eql(u8, slice[0..4], "diff")) {
+                            w.writeAll("--- ") catch return -1;
+                            w.writeAll(std.mem.span(path)) catch return -1;
+                            w.writeByte('\n') catch return -1;
+                        }
+                        // Skip all other file header lines (index, ---, +++)
+                    }
+                }
             },
             else => {},
         }
