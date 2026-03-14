@@ -1,10 +1,10 @@
 const std = @import("std");
 const git = @import("../git.zig");
 const c = git.c;
-const clr = @import("../color.zig");
+const color = @import("../color.zig");
+const fmt = @import("../fmt.zig");
 
 const Writer = std.Io.Writer;
-const default_count: usize = 20;
 
 pub fn run(repo: *c.git_repository, human: bool, count: usize, w: *Writer) !void {
     var walk: ?*c.git_revwalk = null;
@@ -16,9 +16,8 @@ pub fn run(repo: *c.git_repository, human: bool, count: usize, w: *Writer) !void
 
     var oid: c.git_oid = undefined;
     var shown: usize = 0;
-    const max = if (count == 0) default_count else count;
 
-    while (shown < max) {
+    while (shown < count) {
         const err = c.git_revwalk_next(&oid, walk);
         if (err < 0) break;
 
@@ -33,33 +32,16 @@ pub fn run(repo: *c.git_repository, human: bool, count: usize, w: *Writer) !void
         const short_hash = oid_buf[0..7];
 
         if (human) {
-            const use_color = clr.isTty();
-            const time = c.git_commit_time(commit);
-            const ts: u64 = @intCast(time);
-            const epoch = std.time.epoch.EpochSeconds{ .secs = ts };
-            const day = epoch.getEpochDay();
-            const yd = day.calculateYearDay();
-            const md = yd.calculateMonthDay();
+            const use_color = color.isTty();
+            const d = fmt.epochToDate(c.git_commit_time(commit));
             if (use_color) {
                 try w.print("{s}{s}{s} {s}{d}-{d:0>2}-{d:0>2}{s} {s}\n", .{
-                    clr.yellow,
-                    short_hash,
-                    clr.reset,
-                    clr.dim,
-                    yd.year,
-                    @intFromEnum(md.month),
-                    md.day_index + 1,
-                    clr.reset,
+                    color.yellow, short_hash, color.reset,
+                    color.dim,    d.year,     d.month, d.day, color.reset,
                     summary,
                 });
             } else {
-                try w.print("{s} {d}-{d:0>2}-{d:0>2} {s}\n", .{
-                    short_hash,
-                    yd.year,
-                    @intFromEnum(md.month),
-                    md.day_index + 1,
-                    summary,
-                });
+                try w.print("{s} {d}-{d:0>2}-{d:0>2} {s}\n", .{ short_hash, d.year, d.month, d.day, summary });
             }
         } else {
             try w.print("{s} {s}\n", .{ short_hash, summary });

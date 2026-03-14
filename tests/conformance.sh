@@ -344,6 +344,98 @@ check "diff --cached passthrough" \
   "git diff --cached" \
   "$NIT diff --cached"
 
+# --- Show --stat edge cases ---
+echo ""
+echo "show --stat (edge cases):"
+
+# Stat on the delete-only commit
+DELETE_HASH=$(git log --oneline -1 --all --grep="Remove" | cut -d' ' -f1)
+# Delete commit should have at least one file with deletions
+check "show --stat delete commit has deletions" \
+  "$NIT show --stat $DELETE_HASH 2>&1 | grep -c '^\  .*-[0-9]'" \
+  "echo 1"
+
+# Initial commit should have files with additions (the per-file lines)
+check "show --stat initial commit has additions" \
+  "$NIT show --stat $FIRST_HASH 2>&1 | grep -c '^\  .*+[0-9]'" \
+  "echo 2"
+
+# Stat per-file totals add up to summary
+check "show --stat totals consistent" \
+  "$NIT show --stat $FIRST_HASH 2>&1 | tail -n +3 | grep -o '+[0-9]*' | tr -d '+' | paste -sd+ - | bc" \
+  "$NIT show --stat $FIRST_HASH 2>&1 | sed -n '2p' | grep -o '+[0-9]*' | tr -d '+'"
+
+# --- Merge commit ---
+echo ""
+echo "merge commit:"
+
+# Create a clean merge (no conflicts) by touching different files
+git stash -q
+git checkout -q -b feature
+echo "# feature notes" > feature.txt
+git add feature.txt
+git commit -q -m "Add feature file"
+git checkout -q main
+echo "# readme" > README.txt
+git add README.txt
+git commit -q -m "Add readme"
+git merge -q --no-edit feature
+
+check "merge commit in log" \
+  "git log --oneline -1" \
+  "$NIT log -n 1"
+
+check "merge commit show summary" \
+  "git log --oneline -1" \
+  "$NIT show 2>&1 | head -1"
+
+git stash pop -q 2>/dev/null || true
+
+# --- Multiple files in diff ---
+echo ""
+echo "multi-file:"
+
+check "diff lists all changed files" \
+  "git diff -U1 --name-only | sort" \
+  "$NIT diff | grep '^--- ' | sed 's/^--- //' | sort"
+
+check "diff file count matches" \
+  "git diff --stat | tail -1 | grep -o '[0-9]* file' | head -1" \
+  "$NIT diff | grep '^--- ' | wc -l | tr -d ' ' | sed 's/$/& file/;s/^\\([0-9]*\\)& /\\1 /'"
+
+# --- Subdirectory ---
+echo ""
+echo "subdirectory:"
+
+mkdir -p sub
+check "status from subdirectory" \
+  "cd sub && git status --porcelain | sort" \
+  "cd sub && $NIT status | sort"
+
+check "log from subdirectory" \
+  "cd sub && git log --oneline -3" \
+  "cd sub && $NIT log -n 3"
+
+check "diff from subdirectory" \
+  "cd sub && git diff -U1 | grep '^[+-]' | grep -v '^[+-][+-][+-]'" \
+  "cd sub && $NIT diff | grep '^[+-]' | grep -v '^--- '"
+
+# --- Usage/help ---
+echo ""
+echo "usage:"
+
+check "no args shows usage" \
+  "$NIT 2>&1 | head -1" \
+  "echo 'nit - the smallest unit of git'"
+
+check "--help shows usage" \
+  "$NIT --help 2>&1 | head -1" \
+  "echo 'nit - the smallest unit of git'"
+
+check "help shows usage" \
+  "$NIT help 2>&1 | head -1" \
+  "echo 'nit - the smallest unit of git'"
+
 # --- Not a repo ---
 echo ""
 echo "error handling:"

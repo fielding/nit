@@ -95,22 +95,16 @@ pub fn run() !void {
     try git.init();
     defer git.deinit();
 
-    // Native commands — optimized output via libgit2
+    var repo = try openRepo();
+    defer repo.deinit();
+
     if (std.mem.eql(u8, cmd, "status") or std.mem.eql(u8, cmd, "s")) {
-        var repo = try openRepo(w);
-        defer repo.deinit();
         try status.run(repo.repo, human, w);
     } else if (std.mem.eql(u8, cmd, "log") or std.mem.eql(u8, cmd, "l")) {
-        var repo = try openRepo(w);
-        defer repo.deinit();
         try log.run(repo.repo, human, count, w);
     } else if (std.mem.eql(u8, cmd, "diff") or std.mem.eql(u8, cmd, "d")) {
-        var repo = try openRepo(w);
-        defer repo.deinit();
         try diff.run(repo.repo, human, staged, w);
     } else if (std.mem.eql(u8, cmd, "show")) {
-        var repo = try openRepo(w);
-        defer repo.deinit();
         // Find revision arg (first non-flag arg after "show")
         var rev: ?[]const u8 = null;
         for (args[2..]) |arg| {
@@ -125,7 +119,7 @@ pub fn run() !void {
     try w.flush();
 }
 
-fn openRepo(_: *std.Io.Writer) !git.Repository {
+fn openRepo() !git.Repository {
     return git.Repository.openFromCwd() catch {
         std.debug.print("fatal: not a git repository\n", .{});
         std.process.exit(128);
