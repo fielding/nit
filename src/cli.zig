@@ -143,13 +143,22 @@ fn openRepo() !git.Repository {
     };
 }
 
+fn canonicalPassthroughCmd(cmd: [:0]const u8) [:0]const u8 {
+    if (std.mem.eql(u8, cmd, "b")) return "branch";
+    if (std.mem.eql(u8, cmd, "s")) return "status";
+    if (std.mem.eql(u8, cmd, "d")) return "diff";
+    if (std.mem.eql(u8, cmd, "l")) return "log";
+    return cmd;
+}
+
 fn passthrough(args: []const [:0]const u8) !void {
-    // Build null-terminated argv: ["git", args[1..], null]
+    // Build null-terminated argv: ["git", canonicalized args[1..], null]
     const alloc = std.heap.page_allocator;
     const argv = try alloc.alloc(?[*:0]const u8, args.len + 1);
     argv[0] = "git";
     for (args[1..], 1..) |arg, idx| {
-        argv[idx] = arg.ptr;
+        const passthrough_arg = if (idx == 1) canonicalPassthroughCmd(arg) else arg;
+        argv[idx] = passthrough_arg.ptr;
     }
     argv[args.len] = null;
 
