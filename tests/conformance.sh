@@ -285,13 +285,18 @@ check "deleted file diff lines" \
 cp main_backup.py main.py
 rm main_backup.py
 
-# No trailing newline - known issue: nit's buffered writer doesn't
-# insert a newline when the file lacks one, causing lines to run together.
-# TODO: handle GIT_DIFF_LINE_DEL_EOFNL / ADD_EOFNL markers
+# No trailing newline: compact diff should keep git's marker on its own
+# line instead of running the deletion/addition lines together.
+git stash -q
 printf "no newline" > nonewline.txt
 git add nonewline.txt
+git commit -q -m "Add no-newline fixture"
 printf "no newline changed" > nonewline.txt
-git reset -q nonewline.txt
+check "no trailing newline markers" \
+  "git diff -U1 | grep -E '^[-+]no newline|^\\\\ No newline'" \
+  "$NIT diff | grep -E '^[-+]no newline|^\\\\ No newline'"
+git reset --hard -q HEAD~1
+git stash pop -q 2>/dev/null || true
 rm -f nonewline.txt
 
 # --- Show edge cases ---
