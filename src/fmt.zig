@@ -6,6 +6,10 @@ const color = @import("color.zig");
 
 const Writer = std.Io.Writer;
 
+fn writeNoNewlineMarker(w: *Writer) !void {
+    try w.writeAll("\n\\ No newline at end of file\n");
+}
+
 // --- Compact diff callback ---
 
 pub const CompactCtx = struct {
@@ -48,6 +52,7 @@ pub fn compactCallback(
                 }
             }
         },
+        '<', '>', '=' => writeNoNewlineMarker(w) catch return -1,
         else => {},
     }
     return 0;
@@ -139,6 +144,7 @@ pub fn humanCallback(
                 w.writeAll(slice) catch return -1;
             }
         },
+        '<', '>', '=' => writeNoNewlineMarker(w) catch return -1,
         else => {},
     }
     return 0;
