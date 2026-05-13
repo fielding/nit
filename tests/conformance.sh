@@ -209,9 +209,17 @@ check "log --graph passthrough" \
   "git log --graph --oneline -3" \
   "$NIT log --graph --oneline -3"
 
+check "short alias l --graph passthrough" \
+  "git log --graph --oneline -3" \
+  "$NIT l --graph --oneline -3"
+
 check "diff --name-only passthrough" \
   "git diff --name-only" \
   "$NIT diff --name-only"
+
+check "short alias d --name-only passthrough" \
+  "git diff --name-only" \
+  "$NIT d --name-only"
 
 check "diff --stat passthrough" \
   "git diff --stat" \
