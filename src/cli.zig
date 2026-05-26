@@ -49,8 +49,13 @@ pub fn run() !void {
     var staged = false;
     var stat = false;
     var has_unknown_flags = false;
+    var has_unsupported_native_args = false;
 
     for (args[2..]) |arg| {
+        if ((std.mem.eql(u8, cmd, "branch") or std.mem.eql(u8, cmd, "b")) and arg.len > 0 and arg[0] != '-') {
+            has_unsupported_native_args = true;
+        }
+
         if (std.mem.eql(u8, arg, "-H") or std.mem.eql(u8, arg, "--human")) {
             human = true;
         } else if ((std.mem.eql(u8, arg, "-s") or std.mem.eql(u8, arg, "--staged")) and (std.mem.eql(u8, cmd, "diff") or std.mem.eql(u8, cmd, "d"))) {
@@ -73,8 +78,10 @@ pub fn run() !void {
         }
     }
 
-    // If we see flags we don't handle, let git deal with it
-    if (has_unknown_flags) {
+    // If we see flags or positional forms we don't handle, let git deal with it.
+    // Native branch currently implements list-only output; creation/deletion args
+    // must pass through so `nit branch <name> <rev>` behaves exactly like git.
+    if (has_unknown_flags or has_unsupported_native_args) {
         try w.flush();
         return passthrough(args);
     }
