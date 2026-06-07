@@ -26,7 +26,7 @@ TMPDIR=$(mktemp -d -t nit-conformance-XXXXXX)
 trap "rm -rf $TMPDIR" EXIT
 
 cd "$TMPDIR"
-git init -q
+git init -q -b main
 git config user.email "test@test.com"
 git config user.name "Test User"
 
@@ -128,6 +128,39 @@ check() {
     ERRORS="${ERRORS}nit cmd: $nit_cmd\n"
     ERRORS="${ERRORS}git output:\n$git_out\n"
     ERRORS="${ERRORS}nit output:\n$nit_out\n"
+  fi
+}
+
+stat_body_additions() {
+  "$NIT" show --stat "$1" 2>&1 \
+    | tail -n +3 \
+    | grep -o '+[0-9]*' \
+    | tr -d '+' \
+    | awk '{sum += $1} END {print sum + 0}'
+}
+
+stat_summary_additions() {
+  "$NIT" show --stat "$1" 2>&1 \
+    | sed -n '2p' \
+    | grep -o '+[0-9]*' \
+    | tr -d '+'
+}
+
+hex_dump() {
+  od -An -tx1 -v | tr -d ' \n'
+  echo
+}
+
+script_tty() {
+  if script -q -c "true" /dev/null >/dev/null 2>&1; then
+    local quoted=""
+    local arg
+    for arg in "$@"; do
+      quoted+="$(printf '%q' "$arg") "
+    done
+    script -q -c "$quoted" /dev/null
+  else
+    script -q /dev/null "$@"
   fi
 }
 
@@ -383,8 +416,8 @@ check "show --stat initial commit has additions" \
 
 # Stat per-file totals add up to summary
 check "show --stat totals consistent" \
-  "$NIT show --stat $FIRST_HASH 2>&1 | tail -n +3 | grep -o '+[0-9]*' | tr -d '+' | paste -sd+ - | bc" \
-  "$NIT show --stat $FIRST_HASH 2>&1 | sed -n '2p' | grep -o '+[0-9]*' | tr -d '+'"
+  "stat_body_additions $FIRST_HASH" \
+  "stat_summary_additions $FIRST_HASH"
 
 # --- Merge commit ---
 echo ""
@@ -724,8 +757,8 @@ printf '\x00\x01\x02\x03BINARY\xff\xfe' > binary.dat
 git add binary.dat
 git commit -q -m "Add binary file"
 check "show HEAD:binary.dat matches git" \
-  "git show HEAD:binary.dat | xxd" \
-  "$NIT show HEAD:binary.dat 2>&1 | xxd"
+  "git show HEAD:binary.dat | hex_dump" \
+  "$NIT show HEAD:binary.dat 2>&1 | hex_dump"
 
 # --- NIT_COLORS env var ---
 echo ""
@@ -735,9 +768,9 @@ echo "NIT_COLORS:"
 # Verify that NIT_COLORS changes output when running in a TTY
 if command -v script >/dev/null 2>&1; then
   # Without NIT_COLORS: default colors in TTY
-  default_out=$(script -q /dev/null $NIT show -H 2>&1 | cat -v | head -3)
+  default_out=$(script_tty "$NIT" show -H 2>&1 | cat -v | head -3)
   # With NIT_COLORS: custom hash color (magenta = 35)
-  custom_out=$(script -q /dev/null env NIT_COLORS="hash=35" $NIT show -H 2>&1 | cat -v | head -3)
+  custom_out=$(script_tty env NIT_COLORS="hash=35" "$NIT" show -H 2>&1 | cat -v | head -3)
 
   if [ "$default_out" != "$custom_out" ]; then
     PASS=$((PASS + 1))
@@ -775,7 +808,7 @@ if command -v script >/dev/null 2>&1; then
     "NIT_COLORS='hash=38;2;255;165;0' $NIT log -n 1 2>&1"
 
   # Verify true-color actually produces escape sequence in TTY
-  truecolor_out=$(script -q /dev/null env NIT_COLORS="hash=38;2;255;0;0" $NIT show -H 2>&1 | cat -v | head -1)
+  truecolor_out=$(script_tty env NIT_COLORS="hash=38;2;255;0;0" "$NIT" show -H 2>&1 | cat -v | head -1)
   if echo "$truecolor_out" | grep -q '38;2;255;0;0'; then
     PASS=$((PASS + 1))
     echo "  PASS: NIT_COLORS true-color escape in TTY output"
@@ -797,8 +830,8 @@ if command -v script >/dev/null 2>&1; then
     "NIT_COLORS='boguskey=32' $NIT log -n 1 2>&1"
 
   # Duplicate keys (last wins) - verify output changes with second value
-  dup_out1=$(script -q /dev/null env NIT_COLORS="hash=35" $NIT show -H 2>&1 | cat -v | head -1)
-  dup_out2=$(script -q /dev/null env NIT_COLORS="hash=33:hash=35" $NIT show -H 2>&1 | cat -v | head -1)
+  dup_out1=$(script_tty env NIT_COLORS="hash=35" "$NIT" show -H 2>&1 | cat -v | head -1)
+  dup_out2=$(script_tty env NIT_COLORS="hash=33:hash=35" "$NIT" show -H 2>&1 | cat -v | head -1)
   if [ "$dup_out1" = "$dup_out2" ]; then
     PASS=$((PASS + 1))
     echo "  PASS: NIT_COLORS duplicate keys (last wins)"
@@ -836,7 +869,7 @@ if command -v script >/dev/null 2>&1; then
     "NIT_COLORS='add=31:del=32:hunk=33:context=34:staged=35:unstaged=36:hash=37:date=38:add=39:del=40:hunk=41:context=42' $NIT log -n 1 2>&1"
 
   # NIT_COLORS affects show -H (color slot: hash, date used in show)
-  custom_show=$(script -q /dev/null env NIT_COLORS="hash=35" $NIT show -H 2>&1 | cat -v | head -1)
+  custom_show=$(script_tty env NIT_COLORS="hash=35" "$NIT" show -H 2>&1 | cat -v | head -1)
   if [ "$default_out" != "$custom_show" ] || echo "$custom_show" | grep -q '35m'; then
     PASS=$((PASS + 1))
     echo "  PASS: NIT_COLORS affects show -H"
@@ -847,8 +880,8 @@ if command -v script >/dev/null 2>&1; then
   fi
 
   # NIT_COLORS affects diff -H (color slot: add, del, hunk, context)
-  default_diff=$(script -q /dev/null $NIT diff -H 2>&1 | cat -v | head -3)
-  custom_diff=$(script -q /dev/null env NIT_COLORS="add=35:del=36" $NIT diff -H 2>&1 | cat -v | head -3)
+  default_diff=$(script_tty "$NIT" diff -H 2>&1 | cat -v | head -3)
+  custom_diff=$(script_tty env NIT_COLORS="add=35:del=36" "$NIT" diff -H 2>&1 | cat -v | head -3)
   if [ "$default_diff" != "$custom_diff" ]; then
     PASS=$((PASS + 1))
     echo "  PASS: NIT_COLORS affects diff -H"
@@ -859,8 +892,8 @@ if command -v script >/dev/null 2>&1; then
   fi
 
   # NIT_COLORS affects log -H (color slot: hash, date)
-  default_log=$(script -q /dev/null $NIT log -H -n 1 2>&1 | cat -v | head -1)
-  custom_log=$(script -q /dev/null env NIT_COLORS="hash=35:date=36" $NIT log -H -n 1 2>&1 | cat -v | head -1)
+  default_log=$(script_tty "$NIT" log -H -n 1 2>&1 | cat -v | head -1)
+  custom_log=$(script_tty env NIT_COLORS="hash=35:date=36" "$NIT" log -H -n 1 2>&1 | cat -v | head -1)
   if [ "$default_log" != "$custom_log" ]; then
     PASS=$((PASS + 1))
     echo "  PASS: NIT_COLORS affects log -H"
@@ -871,8 +904,8 @@ if command -v script >/dev/null 2>&1; then
   fi
 
   # NIT_COLORS affects status -H (color slot: staged, unstaged)
-  default_status=$(script -q /dev/null $NIT status -H 2>&1 | cat -v)
-  custom_status=$(script -q /dev/null env NIT_COLORS="staged=35:unstaged=36" $NIT status -H 2>&1 | cat -v)
+  default_status=$(script_tty "$NIT" status -H 2>&1 | cat -v)
+  custom_status=$(script_tty env NIT_COLORS="staged=35:unstaged=36" "$NIT" status -H 2>&1 | cat -v)
   if [ "$default_status" != "$custom_status" ]; then
     PASS=$((PASS + 1))
     echo "  PASS: NIT_COLORS affects status -H"
