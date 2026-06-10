@@ -38,7 +38,7 @@ pub fn run(repo: *c.git_repository, human: bool, stat: bool, rev: ?[]const u8, w
     try git.check(c.git_commit_lookup(&commit, repo, &oid));
     defer c.git_commit_free(commit);
 
-    var oid_buf: [c.GIT_OID_SHA1_HEXSIZE + 1]u8 = undefined;
+    var oid_buf: [c.GIT_OID_HEXSZ + 1]u8 = undefined;
     _ = c.git_oid_tostr(&oid_buf, oid_buf.len, &oid);
     const short_hash = oid_buf[0..7];
     const raw_summary = c.git_commit_summary(commit);
