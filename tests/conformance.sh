@@ -26,7 +26,9 @@ TMPDIR=$(mktemp -d -t nit-conformance-XXXXXX)
 trap "rm -rf $TMPDIR" EXIT
 
 cd "$TMPDIR"
-git init -q
+# -b main: the merge-commit tests checkout main by name, so don't depend
+# on the host's init.defaultBranch
+git init -q -b main
 git config user.email "test@test.com"
 git config user.name "Test User"
 

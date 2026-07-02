@@ -1,9 +1,9 @@
 //! Zig version compatibility layer.
 //!
-//! nit supports both Zig 0.15.x (what CI pins) and 0.16-dev (where the std
-//! I/O and process APIs changed shape). Everything version-sensitive lives
-//! here so the rest of the codebase can stay on the shared std.Io.Writer
-//! interface, which is identical across both versions.
+//! nit supports both Zig 0.15.x and 0.16.x (where the std I/O and process
+//! APIs changed shape). Everything version-sensitive lives here so the rest
+//! of the codebase can stay on the shared std.Io.Writer interface, which is
+//! identical across both versions.
 const std = @import("std");
 
 /// Zig 0.16 introduced std.process.Init and moved File I/O behind std.Io.

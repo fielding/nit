@@ -11,18 +11,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        zig: ["0.15.2"]
+        # macos + 0.15.2 is omitted: zig 0.15.2 cannot link against the
+        # macOS 26 SDK on current runner images (and current Macs).
+        # 0.16 support comes via src/compat.zig.
         include:
-          # 0.16-dev is supported via src/compat.zig; informational only
-          # since master moves under us.
           - os: ubuntu-latest
-            zig: master
+            zig: "0.15.2"
+          - os: ubuntu-latest
+            zig: "0.16.0"
           - os: macos-latest
-            zig: master
+            zig: "0.16.0"
 
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.zig == 'master' }}
 
     steps:
       - uses: actions/checkout@v4

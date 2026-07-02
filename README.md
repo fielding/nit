@@ -47,7 +47,7 @@ We ran [experiments](experiments/) to validate our choice of 1 context line (vs 
 
 ## Install
 
-Requires [libgit2](https://libgit2.org/) and [zig](https://ziglang.org/) 0.15.2 (0.16-dev also works).
+Requires [libgit2](https://libgit2.org/) and [zig](https://ziglang.org/) 0.15.2 or 0.16.0. On recent macOS (26+ SDK) use 0.16.0 - zig 0.15.2 cannot link against that SDK.
 
 ```sh
 # From source
