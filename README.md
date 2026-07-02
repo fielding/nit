@@ -47,7 +47,7 @@ We ran [experiments](experiments/) to validate our choice of 1 context line (vs 
 
 ## Install
 
-Requires [libgit2](https://libgit2.org/) and [zig](https://ziglang.org/) 0.14+.
+Requires [libgit2](https://libgit2.org/) and [zig](https://ziglang.org/) 0.15.2 (0.16-dev also works).
 
 ```sh
 # From source

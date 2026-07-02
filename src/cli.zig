@@ -1,4 +1,5 @@
 const std = @import("std");
+const compat = @import("compat.zig");
 const git = @import("git.zig");
 const status = @import("cmd/status.zig");
 const log = @import("cmd/log.zig");
@@ -26,15 +27,14 @@ const usage =
     \\
 ;
 
-pub fn run() !void {
+pub fn run(init: compat.ProcessInit) !void {
     color.init();
 
     var buf: [8192]u8 = undefined;
-    var file_writer = std.fs.File.stdout().writer(&buf);
+    var file_writer = compat.stdoutWriter(init, &buf);
     const w = &file_writer.interface;
 
-    const args = try std.process.argsAlloc(std.heap.page_allocator);
-    defer std.process.argsFree(std.heap.page_allocator, args);
+    const args = try compat.argsSlice(init);
 
     if (args.len < 2) {
         try w.writeAll(usage);
@@ -163,7 +163,5 @@ fn passthrough(args: []const [:0]const u8) !void {
     argv[args.len] = null;
 
     const argv_ptr: [*:null]const ?[*:0]const u8 = @ptrCast(argv.ptr);
-    const envp: [*:null]const ?[*:0]const u8 = @ptrCast(std.c.environ);
-
-    return std.posix.execvpeZ("git", argv_ptr, envp);
+    return compat.execGit(argv_ptr);
 }

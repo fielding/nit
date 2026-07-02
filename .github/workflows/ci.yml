@@ -9,17 +9,27 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
+        zig: ["0.15.2"]
+        include:
+          # 0.16-dev is supported via src/compat.zig; informational only
+          # since master moves under us.
+          - os: ubuntu-latest
+            zig: master
+          - os: macos-latest
+            zig: master
 
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.zig == 'master' }}
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: mlugg/setup-zig@v2
         with:
-          version: 0.15.2
+          version: ${{ matrix.zig }}
 
       - name: Install libgit2 (Linux)
         if: runner.os == 'Linux'
@@ -41,3 +51,6 @@ jobs:
           ./zig-out/bin/nit status
           ./zig-out/bin/nit log -n 5
           ./zig-out/bin/nit show
+
+      - name: Conformance tests
+        run: ./tests/conformance.sh ./zig-out/bin/nit

@@ -1,4 +1,5 @@
 const std = @import("std");
+const compat = @import("compat.zig");
 
 // Default ANSI colors (respects terminal theme)
 const defaults = struct {
@@ -54,7 +55,7 @@ fn makeEscape(sgr: []const u8) []const u8 {
 }
 
 pub fn init() void {
-    const env = std.posix.getenv("NIT_COLORS") orelse return;
+    const env = compat.getenv("NIT_COLORS") orelse return;
 
     // Parse "key=value:key=value:..."
     var iter = std.mem.splitScalar(u8, env, ':');
@@ -88,5 +89,5 @@ pub fn init() void {
 }
 
 pub fn isTty() bool {
-    return std.posix.isatty(std.fs.File.stdout().handle);
+    return compat.stdoutIsTty();
 }

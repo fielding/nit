@@ -9,13 +9,9 @@ pub const Repository = struct {
 
     pub fn openFromCwd() !Repository {
         var repo: ?*c.git_repository = null;
-        const cwd_dir = std.fs.cwd();
-        var buf: [std.fs.max_path_bytes]u8 = undefined;
-        const path = try cwd_dir.realpath(".", &buf);
-        const path_z = try std.heap.page_allocator.dupeZ(u8, path);
-        defer std.heap.page_allocator.free(path_z);
-
-        try check(c.git_repository_open_ext(&repo, path_z, 0, null));
+        // libgit2 resolves the relative path and discovers upward itself;
+        // no need to realpath the cwd first.
+        try check(c.git_repository_open_ext(&repo, ".", 0, null));
         return .{ .repo = repo.? };
     }
 
