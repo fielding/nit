@@ -9,8 +9,18 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # macos + 0.15.2 is omitted: zig 0.15.2 cannot link against the
+        # macOS 26 SDK on current runner images (and current Macs).
+        # 0.16 support comes via src/compat.zig.
+        include:
+          - os: ubuntu-latest
+            zig: "0.15.2"
+          - os: ubuntu-latest
+            zig: "0.16.0"
+          - os: macos-latest
+            zig: "0.16.0"
 
     runs-on: ${{ matrix.os }}
 
@@ -19,7 +29,7 @@ jobs:
 
       - uses: mlugg/setup-zig@v2
         with:
-          version: 0.15.2
+          version: ${{ matrix.zig }}
 
       - name: Install libgit2 (Linux)
         if: runner.os == 'Linux'
@@ -41,3 +51,6 @@ jobs:
           ./zig-out/bin/nit status
           ./zig-out/bin/nit log -n 5
           ./zig-out/bin/nit show
+
+      - name: Conformance tests
+        run: ./tests/conformance.sh ./zig-out/bin/nit
